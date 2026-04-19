@@ -16,6 +16,15 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppUpgradeRouteImport } from './routes/app.upgrade'
+import { Route as AppTimerRouteImport } from './routes/app.timer'
+import { Route as AppSubjectsRouteImport } from './routes/app.subjects'
+import { Route as AppStreaksRouteImport } from './routes/app.streaks'
+import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppScheduleRouteImport } from './routes/app.schedule'
+import { Route as AppInviteRouteImport } from './routes/app.invite'
+import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -52,34 +61,105 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppUpgradeRoute = AppUpgradeRouteImport.update({
+  id: '/upgrade',
+  path: '/upgrade',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTimerRoute = AppTimerRouteImport.update({
+  id: '/timer',
+  path: '/timer',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSubjectsRoute = AppSubjectsRouteImport.update({
+  id: '/subjects',
+  path: '/subjects',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStreaksRoute = AppStreaksRouteImport.update({
+  id: '/streaks',
+  path: '/streaks',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppScheduleRoute = AppScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInviteRoute = AppInviteRouteImport.update({
+  id: '/invite',
+  path: '/invite',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/app': typeof AppRoute
+  '/app': typeof AppRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/app/analytics': typeof AppAnalyticsRoute
+  '/app/invite': typeof AppInviteRoute
+  '/app/schedule': typeof AppScheduleRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/streaks': typeof AppStreaksRoute
+  '/app/subjects': typeof AppSubjectsRoute
+  '/app/timer': typeof AppTimerRoute
+  '/app/upgrade': typeof AppUpgradeRoute
+  '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/app': typeof AppRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/app/analytics': typeof AppAnalyticsRoute
+  '/app/invite': typeof AppInviteRoute
+  '/app/schedule': typeof AppScheduleRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/streaks': typeof AppStreaksRoute
+  '/app/subjects': typeof AppSubjectsRoute
+  '/app/timer': typeof AppTimerRoute
+  '/app/upgrade': typeof AppUpgradeRoute
+  '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/app': typeof AppRoute
+  '/app': typeof AppRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/app/analytics': typeof AppAnalyticsRoute
+  '/app/invite': typeof AppInviteRoute
+  '/app/schedule': typeof AppScheduleRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/streaks': typeof AppStreaksRoute
+  '/app/subjects': typeof AppSubjectsRoute
+  '/app/timer': typeof AppTimerRoute
+  '/app/upgrade': typeof AppUpgradeRoute
+  '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,15 +171,32 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/reset-password'
     | '/signup'
+    | '/app/analytics'
+    | '/app/invite'
+    | '/app/schedule'
+    | '/app/settings'
+    | '/app/streaks'
+    | '/app/subjects'
+    | '/app/timer'
+    | '/app/upgrade'
+    | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/app'
     | '/forgot-password'
     | '/login'
     | '/onboarding'
     | '/reset-password'
     | '/signup'
+    | '/app/analytics'
+    | '/app/invite'
+    | '/app/schedule'
+    | '/app/settings'
+    | '/app/streaks'
+    | '/app/subjects'
+    | '/app/timer'
+    | '/app/upgrade'
+    | '/app'
   id:
     | '__root__'
     | '/'
@@ -109,11 +206,20 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/reset-password'
     | '/signup'
+    | '/app/analytics'
+    | '/app/invite'
+    | '/app/schedule'
+    | '/app/settings'
+    | '/app/streaks'
+    | '/app/subjects'
+    | '/app/timer'
+    | '/app/upgrade'
+    | '/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AppRoute: typeof AppRoute
+  AppRoute: typeof AppRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -172,12 +278,101 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/upgrade': {
+      id: '/app/upgrade'
+      path: '/upgrade'
+      fullPath: '/app/upgrade'
+      preLoaderRoute: typeof AppUpgradeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/timer': {
+      id: '/app/timer'
+      path: '/timer'
+      fullPath: '/app/timer'
+      preLoaderRoute: typeof AppTimerRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/subjects': {
+      id: '/app/subjects'
+      path: '/subjects'
+      fullPath: '/app/subjects'
+      preLoaderRoute: typeof AppSubjectsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/streaks': {
+      id: '/app/streaks'
+      path: '/streaks'
+      fullPath: '/app/streaks'
+      preLoaderRoute: typeof AppStreaksRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/schedule': {
+      id: '/app/schedule'
+      path: '/schedule'
+      fullPath: '/app/schedule'
+      preLoaderRoute: typeof AppScheduleRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/invite': {
+      id: '/app/invite'
+      path: '/invite'
+      fullPath: '/app/invite'
+      preLoaderRoute: typeof AppInviteRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/analytics': {
+      id: '/app/analytics'
+      path: '/analytics'
+      fullPath: '/app/analytics'
+      preLoaderRoute: typeof AppAnalyticsRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppAnalyticsRoute: typeof AppAnalyticsRoute
+  AppInviteRoute: typeof AppInviteRoute
+  AppScheduleRoute: typeof AppScheduleRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppStreaksRoute: typeof AppStreaksRoute
+  AppSubjectsRoute: typeof AppSubjectsRoute
+  AppTimerRoute: typeof AppTimerRoute
+  AppUpgradeRoute: typeof AppUpgradeRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAnalyticsRoute: AppAnalyticsRoute,
+  AppInviteRoute: AppInviteRoute,
+  AppScheduleRoute: AppScheduleRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppStreaksRoute: AppStreaksRoute,
+  AppSubjectsRoute: AppSubjectsRoute,
+  AppTimerRoute: AppTimerRoute,
+  AppUpgradeRoute: AppUpgradeRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AppRoute: AppRoute,
+  AppRoute: AppRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
