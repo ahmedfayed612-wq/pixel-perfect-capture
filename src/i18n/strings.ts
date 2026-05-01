@@ -113,8 +113,8 @@ export const t = {
     label: { en: "SIMPLE PRICING", ar: "أسعار بسيطة" },
     h2: { en: "One price. No tricks.", ar: "سعر واحد. مفيش خدع." },
     launch: {
-      en: "🎉 Launch Offer: First month 15 EGP — donated to Resala Charity.",
-      ar: "🎉 عرض الإطلاق: أول شهر بـ 15 جنيه — بيتبرع لجمعية رسالة.",
+      en: "🎉 First month: 30 EGP — and 15 EGP of it is donated to Resala Charity.",
+      ar: "🎉 أول شهر: 30 جنيه — وبنتبرع بـ 15 جنيه منهم لجمعية رسالة.",
     },
     free: {
       title: { en: "Free", ar: "مجاني" },
@@ -134,7 +134,7 @@ export const t = {
       badge: { en: "MOST POPULAR", ar: "الأكثر اختياراً" },
       title: { en: "Pro", ar: "برو" },
       price: { en: "30 EGP / month", ar: "30 جنيه / شهر" },
-      sub: { en: "First month 15 EGP — donated to Resala", ar: "أول شهر بـ 15 جنيه — بيتبرع لرسالة" },
+      sub: { en: "First month 30 EGP — 15 EGP donated to Resala", ar: "أول شهر 30 جنيه — بنتبرع بـ 15 منهم لرسالة" },
       features: [
         { en: "Everything in Free", ar: "كل اللي في المجاني" },
         { en: "Unlimited subjects", ar: "مواد بلا حدود" },
@@ -149,7 +149,7 @@ export const t = {
   },
   charity: {
     body: { en: "Donated to Resala Charity so far", ar: "اتبرعنا بيها لجمعية رسالة لحد دلوقتي" },
-    sub: { en: "From every student's first month subscription", ar: "من أول اشتراك لكل طالب" },
+    sub: { en: "15 EGP from every student's first month subscription", ar: "15 جنيه من أول اشتراك لكل طالب" },
   },
   trust: {
     h2: { en: "Built for Egyptian students", ar: "اتبنى للطالب المصري" },
@@ -160,7 +160,7 @@ export const t = {
     badges: [
       { en: "Made in Egypt", ar: "صُنع في مصر" },
       { en: "Fawry & Vodafone Cash accepted", ar: "بنقبل فوري وفودافون كاش" },
-      { en: "First month goes to charity", ar: "أول شهر بيروح للجمعية" },
+      { en: "15 EGP of first month goes to charity", ar: "15 جنيه من أول شهر بيروحوا للجمعية" },
     ],
   },
   footer: { copy: { en: "© 2025 Waqti. All rights reserved.", ar: "© 2025 وقتي. جميع الحقوق محفوظة." } },
