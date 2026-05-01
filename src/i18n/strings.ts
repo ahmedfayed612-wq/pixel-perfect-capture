@@ -281,6 +281,30 @@ export const t = {
     heatmapPrompt: { en: "Unlock your full study heatmap.", ar: "افتح خريطة المذاكرة الكاملة." },
   },
 
+  // Schedule
+  schedule: {
+    title: { en: "Weekly Schedule", ar: "الجدول الأسبوعي" },
+    addBlock: { en: "+ Add Block", ar: "+ أضف خانة" },
+    newBlock: { en: "New Block", ar: "خانة جديدة" },
+    editBlock: { en: "Edit Block", ar: "عدّل الخانة" },
+    kind: { en: "Type", ar: "النوع" },
+    lecture: { en: "Lecture", ar: "محاضرة" },
+    study: { en: "Study", ar: "مذاكرة" },
+    homework: { en: "Homework", ar: "واجب" },
+    day: { en: "Day", ar: "اليوم" },
+    start: { en: "Start", ar: "من" },
+    end: { en: "End", ar: "إلى" },
+    subject: { en: "Subject (optional)", ar: "المادة (اختياري)" },
+    titleField: { en: "Title (optional)", ar: "العنوان (اختياري)" },
+    titlePlaceholder: { en: "e.g. Calculus HW Ch. 4", ar: "مثلاً واجب تفاضل وتكامل ٤" },
+    save: { en: "Save", ar: "احفظ" },
+    delete: { en: "Delete", ar: "احذف" },
+    none: { en: "Nothing scheduled. Tap a cell to add.", ar: "مفيش حاجة في الجدول. دوس على خانة علشان تضيف." },
+    invalidTime: { en: "End time must be after start time.", ar: "وقت النهاية لازم يكون بعد البداية." },
+    saved: { en: "Block saved", ar: "اتحفظت" },
+    deleted: { en: "Block deleted", ar: "اتمسحت" },
+  },
+
   common: {
     loading: { en: "Loading…", ar: "جاري التحميل…" },
     cancel: { en: "Cancel", ar: "إلغاء" },
