@@ -10,8 +10,20 @@ import { todayISO } from "@/lib/waqti";
 
 export const Route = createFileRoute("/app/")({ component: Dashboard });
 
-type Subject = { id: string; name: string; color: string; weekly_goal_hours: number };
+type Subject = { id: string; name: string; name_ar: string | null; color: string; weekly_goal_hours: number };
 type Streak = { current_streak: number; longest_streak: number; last_study_date: string | null };
+type ScheduleBlock = {
+  id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  kind: "lecture" | "study" | "homework";
+  title: string | null;
+  subject_id: string | null;
+};
+
+// JS Date.getDay(): Sun=0..Sat=6 → app convention Sat=0, Sun=1, ... Fri=6
+const todayDow = () => (new Date().getDay() + 1) % 7;
 
 function Dashboard() {
   const { profile } = useAuth();
@@ -19,18 +31,22 @@ function Dashboard() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [todayMinutes, setTodayMinutes] = useState(0);
   const [streak, setStreak] = useState<Streak | null>(null);
+  const [todayBlocks, setTodayBlocks] = useState<ScheduleBlock[]>([]);
 
   useEffect(() => {
     if (!profile) return;
     (async () => {
-      const [{ data: subs }, { data: sess }, { data: st }] = await Promise.all([
-        supabase.from("subjects").select("id,name,color,weekly_goal_hours").order("position"),
+      const dow = todayDow();
+      const [{ data: subs }, { data: sess }, { data: st }, { data: sched }] = await Promise.all([
+        supabase.from("subjects").select("id,name,name_ar,color,weekly_goal_hours").order("position"),
         supabase.from("sessions").select("duration_minutes").eq("date", todayISO()),
         supabase.from("streaks").select("current_streak,longest_streak,last_study_date").eq("user_id", profile.id).maybeSingle(),
+        supabase.from("schedule").select("id,day_of_week,start_time,end_time,kind,title,subject_id").eq("day_of_week", dow).order("start_time"),
       ]);
       setSubjects((subs as Subject[]) ?? []);
       setTodayMinutes((sess ?? []).reduce((a: number, s: any) => a + s.duration_minutes, 0));
       setStreak((st as Streak) ?? { current_streak: 0, longest_streak: 0, last_study_date: null });
+      setTodayBlocks((sched as ScheduleBlock[]) ?? []);
     })();
   }, [profile]);
 
@@ -148,13 +164,41 @@ function Dashboard() {
         </div>
 
         <div className="surface-card p-5">
-          <div className="text-label">{tr(t.dashboard.todaySchedule, lang)}</div>
+          <div className="flex items-center justify-between">
+            <div className="text-label">{tr(t.dashboard.todaySchedule, lang)}</div>
+            {profile?.is_pro && (
+              <Link to="/app/schedule" className="text-xs font-semibold text-teal hover:underline">
+                {tr(t.nav.schedule, lang)} →
+              </Link>
+            )}
+          </div>
           {!profile?.is_pro ? (
             <div className="mt-3 flex items-center gap-2 text-sm text-mid-grey">
               <Lock className="h-4 w-4 text-teal" /> {tr(t.dashboard.noScheduleFree, lang)}
             </div>
+          ) : todayBlocks.length === 0 ? (
+            <Link to="/app/schedule" className="mt-3 block text-sm text-teal hover:underline">
+              {tr(t.dashboard.noSchedule, lang)}
+            </Link>
           ) : (
-            <div className="mt-3 text-sm text-mid-grey">{tr(t.dashboard.noSchedule, lang)}</div>
+            <ul className="mt-3 space-y-2">
+              {todayBlocks.map((b) => {
+                const subj = subjects.find((s) => s.id === b.subject_id);
+                const label =
+                  b.title ||
+                  (subj ? (lang === "ar" && subj.name_ar ? subj.name_ar : subj.name) : tr(t.schedule[b.kind], lang));
+                const color = subj?.color ?? (b.kind === "lecture" ? "#0D7377" : b.kind === "homework" ? "#e11d48" : "#F4A261");
+                return (
+                  <li key={b.id} className="flex items-center gap-3 rounded-md border border-light-grey px-3 py-2 text-sm">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
+                    <span className="font-medium text-near-black">{label}</span>
+                    <span className="ms-auto text-xs tabular-nums text-mid-grey">
+                      {b.start_time.slice(0, 5)}–{b.end_time.slice(0, 5)}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
       </div>

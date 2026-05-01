@@ -123,24 +123,30 @@ export type Database = {
           day_of_week: number
           end_time: string
           id: string
+          kind: string
           start_time: string
-          subject_id: string
+          subject_id: string | null
+          title: string | null
           user_id: string
         }
         Insert: {
           day_of_week: number
           end_time: string
           id?: string
+          kind?: string
           start_time: string
-          subject_id: string
+          subject_id?: string | null
+          title?: string | null
           user_id: string
         }
         Update: {
           day_of_week?: number
           end_time?: string
           id?: string
+          kind?: string
           start_time?: string
-          subject_id?: string
+          subject_id?: string | null
+          title?: string | null
           user_id?: string
         }
         Relationships: [
