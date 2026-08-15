@@ -14,54 +14,111 @@ export type Database = {
   }
   public: {
     Tables: {
+      badges: {
+        Row: {
+          achieved_at: string
+          created_at: string
+          id: string
+          milestone: number
+          user_id: string
+        }
+        Insert: {
+          achieved_at?: string
+          created_at?: string
+          id?: string
+          milestone: number
+          user_id: string
+        }
+        Update: {
+          achieved_at?: string
+          created_at?: string
+          id?: string
+          milestone?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
           daily_goal_hours: number
+          dream_college: string | null
           email: string
           id: string
           is_pro: boolean
           language: string
           name: string
+          notify_block_reminder: boolean
+          notify_daily_reminder: boolean
+          notify_streak_risk: boolean
+          notify_weekly_summary: boolean
           onboarding_complete: boolean
+          plan: string
+          pomodoro_focus_min: number
+          pomodoro_long_break_min: number
+          pomodoro_rounds: number
+          pomodoro_short_break_min: number
           referral_code: string | null
           referral_credits_egp: number
           referred_by_user_id: string | null
           student_type: string | null
           subscription_end: string | null
           subscription_start: string | null
+          weekly_goal_hours: number
         }
         Insert: {
           created_at?: string
           daily_goal_hours?: number
+          dream_college?: string | null
           email: string
           id: string
           is_pro?: boolean
           language?: string
           name: string
+          notify_block_reminder?: boolean
+          notify_daily_reminder?: boolean
+          notify_streak_risk?: boolean
+          notify_weekly_summary?: boolean
           onboarding_complete?: boolean
+          plan?: string
+          pomodoro_focus_min?: number
+          pomodoro_long_break_min?: number
+          pomodoro_rounds?: number
+          pomodoro_short_break_min?: number
           referral_code?: string | null
           referral_credits_egp?: number
           referred_by_user_id?: string | null
           student_type?: string | null
           subscription_end?: string | null
           subscription_start?: string | null
+          weekly_goal_hours?: number
         }
         Update: {
           created_at?: string
           daily_goal_hours?: number
+          dream_college?: string | null
           email?: string
           id?: string
           is_pro?: boolean
           language?: string
           name?: string
+          notify_block_reminder?: boolean
+          notify_daily_reminder?: boolean
+          notify_streak_risk?: boolean
+          notify_weekly_summary?: boolean
           onboarding_complete?: boolean
+          plan?: string
+          pomodoro_focus_min?: number
+          pomodoro_long_break_min?: number
+          pomodoro_rounds?: number
+          pomodoro_short_break_min?: number
           referral_code?: string | null
           referral_credits_egp?: number
           referred_by_user_id?: string | null
           student_type?: string | null
           subscription_end?: string | null
           subscription_start?: string | null
+          weekly_goal_hours?: number
         }
         Relationships: [
           {
@@ -168,33 +225,58 @@ export type Database = {
       }
       sessions: {
         Row: {
+          block_type: string
+          comprehension_score: number | null
           created_at: string
           date: string
           duration_minutes: number
+          fatigue_score: number | null
+          focus_score: number | null
           id: string
           notes: string | null
+          schedule_block_id: string | null
           subject_id: string | null
+          topic: string | null
           user_id: string
         }
         Insert: {
+          block_type?: string
+          comprehension_score?: number | null
           created_at?: string
           date: string
           duration_minutes: number
+          fatigue_score?: number | null
+          focus_score?: number | null
           id?: string
           notes?: string | null
+          schedule_block_id?: string | null
           subject_id?: string | null
+          topic?: string | null
           user_id: string
         }
         Update: {
+          block_type?: string
+          comprehension_score?: number | null
           created_at?: string
           date?: string
           duration_minutes?: number
+          fatigue_score?: number | null
+          focus_score?: number | null
           id?: string
           notes?: string | null
+          schedule_block_id?: string | null
           subject_id?: string | null
+          topic?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sessions_schedule_block_id_fkey"
+            columns: ["schedule_block_id"]
+            isOneToOne: false
+            referencedRelation: "schedule"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sessions_subject_id_fkey"
             columns: ["subject_id"]
@@ -283,6 +365,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      weekly_challenges: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          target_days: number
+          updated_at: string
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          target_days?: number
+          updated_at?: string
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          target_days?: number
+          updated_at?: string
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: []
       }
     }
     Views: {

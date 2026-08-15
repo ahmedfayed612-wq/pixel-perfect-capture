@@ -23,6 +23,8 @@ export const t = {
     analytics: { en: "Analytics", ar: "التحليلات" },
     streaks: { en: "Streaks", ar: "السلاسل" },
     invite: { en: "Invite Friends", ar: "ادعو أصحابك" },
+    readiness: { en: "Exam Readiness", ar: "درجة الاستعداد" },
+    log: { en: "Session Log", ar: "السجل الكامل" },
     settings: { en: "Settings", ar: "الإعدادات" },
     logout: { en: "Log Out", ar: "تسجيل الخروج" },
   },
@@ -163,7 +165,7 @@ export const t = {
       { en: "15 EGP of first month goes to charity", ar: "15 جنيه من أول شهر بيروحوا للجمعية" },
     ],
   },
-  footer: { copy: { en: "© 2025 Waqti. All rights reserved.", ar: "© 2025 وقتي. جميع الحقوق محفوظة." } },
+  footer: { copy: { en: "© 2026 Waqti. All rights reserved.", ar: "© 2026 جميع الحقوق محفوظة. وقتي." } },
 
   // Auth
   auth: {
@@ -194,17 +196,30 @@ export const t = {
 
   // Onboarding
   onboarding: {
-    step1Title: { en: "What do you study?", ar: "بتذاكر إيه؟" },
-    step1Sub: { en: "Add your first subject. You can change this later.", ar: "أضف أول مادة. تقدر تعدلها بعدين." },
+    dreamTitle: { en: "What's your dream?", ar: "حلمك إيه؟" },
+    dreamSub: {
+      en: "Which college are you working towards? We'll keep reminding you.",
+      ar: "بتذاكر عشان تدخل كلية إيه؟ هنفكرك بيها على طول.",
+    },
+    dreamLabel: { en: "Dream college", ar: "كلية أحلامك" },
+    dreamPlaceholder: { en: "e.g. Faculty of Medicine", ar: "مثلاً كلية الطب" },
+    step1Title: { en: "Add your subjects", ar: "أضف موادك" },
+    step1Sub: { en: "Pick from the suggestions or type your own.", ar: "اختار من الاقتراحات أو اكتب اللي إنت عايزه." },
     subjectName: { en: "Subject name", ar: "اسم المادة" },
     chooseColor: { en: "Pick a color", ar: "اختار لون" },
-    step2Title: { en: "Set a daily goal", ar: "حدد هدف يومي" },
-    step2Sub: { en: "How many hours per day?", ar: "بتذاكر كام ساعة في اليوم؟" },
-    step3Title: { en: "Start your first session", ar: "ابدأ أول جلسة" },
-    step3Sub: { en: "The clock is ready. So are you.", ar: "الساعة جاهزة. وأنت كمان." },
+    addSubject: { en: "Add subject", ar: "أضف المادة" },
+    freeCap: { en: "Free plan: up to 3 subjects.", ar: "الباقة المجانية: 3 مواد بحد أقصى." },
+    minOne: { en: "Add at least one subject.", ar: "لازم مادة واحدة على الأقل." },
+    step2Title: { en: "Your weekly goal", ar: "هدفك الأسبوعي" },
+    step2Sub: { en: "How many hours a week do you want to study?", ar: "كام ساعة في الأسبوع عايز تذاكر؟" },
+    weeklyUnit: { en: "hours per week", ar: "ساعة في الأسبوع" },
+    dailyGoal: { en: "Daily goal (hours)", ar: "الهدف اليومي (ساعات)" },
+    finish: { en: "Finish", ar: "يلا نبدأ" },
     startTimer: { en: "Start Timer", ar: "ابدأ المؤقت" },
     skip: { en: "Skip", ar: "تخطي" },
     next: { en: "Next", ar: "التالي" },
+    back: { en: "Back", ar: "رجوع" },
+    welcome: { en: "Welcome", ar: "أهلاً" },
   },
 
   // Dashboard
@@ -213,19 +228,24 @@ export const t = {
     evening: { en: "Good evening", ar: "مساء الخير يا" },
     today: { en: "Today", ar: "النهارده" },
     hours: { en: "hours", ar: "ساعات" },
-    noSessions: { en: "No sessions yet. Start now!", ar: "مفيش جلسات لسه. ابدأ دلوقتي!" },
+    noSessions: { en: "No sessions yet. Start your session!", ar: "مفيش جلسات لسه. ابدأ جلستك!" },
     yourSubjects: { en: "YOUR SUBJECTS", ar: "مواديك" },
     addFirstSubject: { en: "Add your first subject", ar: "أضف أول مادة" },
     todaySchedule: { en: "TODAY'S SCHEDULE", ar: "جدول النهارده" },
     noScheduleFree: { en: "Plan your week with Pro", ar: "خطط أسبوعك مع برو" },
-    noSchedule: { en: "No sessions planned. Add to your schedule →", ar: "مفيش جلسات متخطط لها. أضف للجدول ←" },
+    noSchedule: { en: "No sessions planned today. Add to your schedule →", ar: "مفيش جلسات متخططة لليوم. أضف للجدول ←" },
     daysStreak: { en: "day streak", ar: "يوم متتالي" },
     quickAnalytics: { en: "View Analytics", ar: "شوف التحليلات" },
     quickStreaks: { en: "Full Streaks", ar: "السلاسل" },
     quickInvite: { en: "Invite Friends", ar: "ادعو أصحابك" },
+    quickReadiness: { en: "Exam Readiness", ar: "درجة الاستعداد" },
     start: { en: "Start", ar: "ابدأ" },
     weekGoal: { en: "hrs/week", ar: "ساعة/أسبوع" },
+    thisWeek: { en: "this week", ar: "الأسبوع ده" },
+    becauseDream: { en: "because you're heading to", ar: "عشان إنت بتذاكر لـ" },
+    dreamStreak: { en: "days in a row bringing you closer to", ar: "أيام متتاليين قرّبوك من" },
   },
+
 
   // Timer
   timer: {
@@ -305,12 +325,101 @@ export const t = {
     deleted: { en: "Block deleted", ar: "اتمسحت" },
   },
 
+  // Post-session questionnaire
+  session: {
+    done: { en: "Session complete! 🎉", ar: "خلصت الجلسة! 🎉" },
+    q1: { en: "Focus: how focused were you?", ar: "مستوى التركيز: قد إيه كنت مركز خلال الجلسة؟" },
+    q2: { en: "Comprehension: how much did you understand?", ar: "مستوى الفهم: قد إيه فهمت اللي ذاكرته؟" },
+    q3: { en: "Mental fatigue: how tired were you at the end?", ar: "الإجهاد الذهني: قد إيه كنت تعبان ذهنياً في الآخر؟" },
+    topic: { en: "Topic / chapter (optional)", ar: "الموضوع/الفصل (اختياري)" },
+    topicPlaceholder: { en: "e.g. Chapter 3 — Calculus", ar: "مثلاً الفصل الثالث - التفاضل والتكامل" },
+    note: { en: "Add a note (optional)", ar: "أضف ملاحظة (اختياري)" },
+    save: { en: "Save session", ar: "احفظ الجلسة" },
+    discard: { en: "Not important", ar: "مش مهم" },
+  },
+
+  // Pomodoro
+  pomodoro: {
+    stopwatch: { en: "Stopwatch", ar: "إيقاف ساعة" },
+    pomodoro: { en: "Pomodoro", ar: "بومودورو" },
+    focus: { en: "Focus", ar: "تركيز" },
+    shortBreak: { en: "Short break", ar: "راحة قصيرة" },
+    longBreak: { en: "Long break", ar: "راحة طويلة" },
+    round: { en: "of", ar: "من" },
+    rounds: { en: "rounds", ar: "جلسة" },
+    settings: { en: "Pomodoro settings", ar: "إعدادات بومودورو" },
+    focusMin: { en: "Focus time (min)", ar: "وقت التركيز (دقيقة)" },
+    shortMin: { en: "Short break (min)", ar: "وقت الراحة القصيرة (دقيقة)" },
+    longMin: { en: "Long break (min)", ar: "وقت الراحة الطويلة (دقيقة)" },
+    roundsField: { en: "Rounds before long break", ar: "عدد الجلسات قبل الراحة الطويلة" },
+    freeSession: { en: "Free session", ar: "جلسة حرة" },
+    todayLog: { en: "Today's sessions", ar: "جلسات النهارده" },
+    todayTotal: { en: "Today's total", ar: "إجمالي النهارده" },
+    emptyLog: { en: "You haven't studied today yet 😶", ar: "لسه النهارده مذاكرتش 😶" },
+  },
+
+  // Exam readiness
+  readiness: {
+    title: { en: "Exam Readiness", ar: "درجة الاستعداد للامتحان" },
+    sub: { en: "A real score per subject, from your own sessions.", ar: "درجة حقيقية لكل مادة، من جلساتك إنت." },
+    prompt: { en: "See how ready you really are.", ar: "اعرف إنت مستعد فعلاً قد إيه." },
+    empty: { en: "Add subjects and log sessions to see your score.", ar: "أضف مواد وسجّل جلسات علشان تشوف درجتك." },
+  },
+
+  // Session log
+  log: {
+    title: { en: "Full Session Log", ar: "السجل الكامل" },
+    allSubjects: { en: "All subjects", ar: "كل المواد" },
+    allTypes: { en: "All types", ar: "كل الأنواع" },
+    range7: { en: "Last week", ar: "آخر أسبوع" },
+    range30: { en: "Last month", ar: "آخر شهر" },
+    rangeAll: { en: "All time", ar: "كل الوقت" },
+    totalSessions: { en: "Total sessions", ar: "إجمالي الجلسات" },
+    totalTime: { en: "Total time", ar: "إجمالي الوقت" },
+    avgQuality: { en: "Average quality", ar: "متوسط جودة الجلسات" },
+    empty: { en: "No sessions here — start studying now", ar: "مفيش جلسات هنا — ابدأ مذاكرة دلوقتي" },
+    focus: { en: "Focus", ar: "تركيز" },
+    comprehension: { en: "Understanding", ar: "فهم" },
+    fatigue: { en: "Fatigue", ar: "إجهاد" },
+  },
+
+  // Analytics extras
+  analytics: {
+    range7: { en: "Last 7 days", ar: "آخر 7 أيام" },
+    range30: { en: "30 days", ar: "30 يوم" },
+    rangeAll: { en: "All time", ar: "كل الوقت" },
+    totalHours: { en: "Total study hours", ar: "إجمالي ساعات المذاكرة" },
+    thisWeek: { en: "Hours this week", ar: "ساعات الأسبوع ده" },
+    dailyAvg: { en: "Daily average", ar: "متوسط يومي" },
+    longest: { en: "Longest session", ar: "أطول جلسة" },
+    bySubject: { en: "Time by subject", ar: "توزيع الوقت بين المواد" },
+    daily: { en: "Daily time", ar: "الوقت اليومي" },
+    byType: { en: "How you spend your time", ar: "كيف بتقضي وقتك" },
+    quality: { en: "Session quality", ar: "جودة الجلسات" },
+    perSubject: { en: "Per-subject breakdown", ar: "تفاصيل كل مادة" },
+    avgWeekly: { en: "Weekly average", ar: "متوسط أسبوعي" },
+    bestDay: { en: "Best day of week", ar: "أفضل يوم في الأسبوع" },
+    noData: { en: "No data yet.", ar: "مفيش بيانات لسه." },
+  },
+
+  // Streaks extras
+  challenge: {
+    title: { en: "Weekly challenge", ar: "تحدي الأسبوع" },
+    body: { en: "Study 5 days this week", ar: "ذاكر 5 أيام الأسبوع ده" },
+    days: { en: "days", ar: "أيام" },
+    done: { en: "Challenge complete! 🏅", ar: "خلصت التحدي! 🏅" },
+    badges: { en: "Milestones & badges", ar: "الإنجازات والشارات" },
+    locked: { en: "Locked", ar: "مقفول" },
+  },
+
   common: {
     loading: { en: "Loading…", ar: "جاري التحميل…" },
     cancel: { en: "Cancel", ar: "إلغاء" },
     confirm: { en: "Confirm", ar: "تأكيد" },
+    save: { en: "Save", ar: "احفظ" },
   },
 };
+
 
 export type StringPair = { en: string; ar: string };
 export const tr = (pair: StringPair, lang: Lang) => pair[lang];

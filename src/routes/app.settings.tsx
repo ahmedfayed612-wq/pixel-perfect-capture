@@ -15,6 +15,7 @@ function SettingsPage() {
   const [name, setName] = useState(profile?.name ?? "");
   const [goal, setGoal] = useState(profile?.daily_goal_hours ?? 4);
   const [studentType, setStudentType] = useState(profile?.student_type ?? "highschool");
+  const [dream, setDream] = useState(profile?.dream_college ?? "");
   const [busy, setBusy] = useState(false);
 
   const save = async () => {
@@ -25,6 +26,7 @@ function SettingsPage() {
       .update({
         name: name.trim(),
         daily_goal_hours: goal,
+        dream_college: dream.trim() || null,
         student_type: studentType,
         language: lang,
       })
@@ -53,6 +55,14 @@ function SettingsPage() {
           <div className="flex h-12 items-center rounded-lg border border-light-grey bg-off-white px-4 text-sm text-mid-grey">
             {profile?.email}
           </div>
+        </Field>
+        <Field label={tr(t.onboarding.dreamLabel, lang)}>
+          <input
+            value={dream}
+            onChange={(e) => setDream(e.target.value)}
+            placeholder={tr(t.onboarding.dreamPlaceholder, lang)}
+            className="block h-12 w-full rounded-lg border border-light-grey bg-white px-4 text-sm focus:border-teal focus:ring-2 focus:ring-teal/20"
+          />
         </Field>
         <Field label={tr(t.auth.studentType, lang)}>
           <div className="grid grid-cols-2 gap-3">
