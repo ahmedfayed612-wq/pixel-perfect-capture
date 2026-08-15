@@ -165,7 +165,7 @@ export const t = {
       { en: "15 EGP of first month goes to charity", ar: "15 جنيه من أول شهر بيروحوا للجمعية" },
     ],
   },
-  footer: { copy: { en: "© 2025 Waqti. All rights reserved.", ar: "© 2025 وقتي. جميع الحقوق محفوظة." } },
+  footer: { copy: { en: "© 2026 Waqti. All rights reserved.", ar: "© 2026 جميع الحقوق محفوظة. وقتي." } },
 
   // Auth
   auth: {
