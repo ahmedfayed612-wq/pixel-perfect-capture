@@ -23,6 +23,8 @@ export const t = {
     analytics: { en: "Analytics", ar: "التحليلات" },
     streaks: { en: "Streaks", ar: "السلاسل" },
     invite: { en: "Invite Friends", ar: "ادعو أصحابك" },
+    readiness: { en: "Exam Readiness", ar: "درجة الاستعداد" },
+    log: { en: "Session Log", ar: "السجل الكامل" },
     settings: { en: "Settings", ar: "الإعدادات" },
     logout: { en: "Log Out", ar: "تسجيل الخروج" },
   },
