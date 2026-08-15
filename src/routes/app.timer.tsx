@@ -410,7 +410,11 @@ function TimerPage() {
 
       {/* Post-session modal */}
       <Dialog open={showModal} onOpenChange={() => {}}>
-        <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto" showCloseButton={false}>
+        <DialogContent
+          className="max-h-[90vh] max-w-md overflow-y-auto [&>button]:hidden"
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>{tr(t.session.done, lang)}</DialogTitle>
           </DialogHeader>
