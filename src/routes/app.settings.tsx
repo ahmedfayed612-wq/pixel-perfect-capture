@@ -15,6 +15,7 @@ function SettingsPage() {
   const [name, setName] = useState(profile?.name ?? "");
   const [goal, setGoal] = useState(profile?.daily_goal_hours ?? 4);
   const [studentType, setStudentType] = useState(profile?.student_type ?? "highschool");
+  const [dream, setDream] = useState(profile?.dream_college ?? "");
   const [busy, setBusy] = useState(false);
 
   const save = async () => {
