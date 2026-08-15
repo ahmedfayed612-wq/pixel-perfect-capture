@@ -1,6 +1,6 @@
 import { Link, Outlet, createFileRoute, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { Home, Timer, BookOpen, Calendar, BarChart3, Flame, Gift, Settings, LogOut, Lock } from "lucide-react";
+import { Home, Timer, BookOpen, Calendar, BarChart3, Flame, Gift, Settings, LogOut, Lock, Target } from "lucide-react";
 import { useAuth } from "@/auth/AuthProvider";
 import { useLang } from "@/i18n/LangProvider";
 import { tr, t } from "@/i18n/strings";
