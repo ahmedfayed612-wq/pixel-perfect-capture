@@ -26,6 +26,7 @@ function SettingsPage() {
       .update({
         name: name.trim(),
         daily_goal_hours: goal,
+        dream_college: dream.trim() || null,
         student_type: studentType,
         language: lang,
       })
