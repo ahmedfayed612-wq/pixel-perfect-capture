@@ -196,17 +196,30 @@ export const t = {
 
   // Onboarding
   onboarding: {
-    step1Title: { en: "What do you study?", ar: "بتذاكر إيه؟" },
-    step1Sub: { en: "Add your first subject. You can change this later.", ar: "أضف أول مادة. تقدر تعدلها بعدين." },
+    dreamTitle: { en: "What's your dream?", ar: "حلمك إيه؟" },
+    dreamSub: {
+      en: "Which college are you working towards? We'll keep reminding you.",
+      ar: "بتذاكر عشان تدخل كلية إيه؟ هنفكرك بيها على طول.",
+    },
+    dreamLabel: { en: "Dream college", ar: "كلية أحلامك" },
+    dreamPlaceholder: { en: "e.g. Faculty of Medicine", ar: "مثلاً كلية الطب" },
+    step1Title: { en: "Add your subjects", ar: "أضف موادك" },
+    step1Sub: { en: "Pick from the suggestions or type your own.", ar: "اختار من الاقتراحات أو اكتب اللي إنت عايزه." },
     subjectName: { en: "Subject name", ar: "اسم المادة" },
     chooseColor: { en: "Pick a color", ar: "اختار لون" },
-    step2Title: { en: "Set a daily goal", ar: "حدد هدف يومي" },
-    step2Sub: { en: "How many hours per day?", ar: "بتذاكر كام ساعة في اليوم؟" },
-    step3Title: { en: "Start your first session", ar: "ابدأ أول جلسة" },
-    step3Sub: { en: "The clock is ready. So are you.", ar: "الساعة جاهزة. وأنت كمان." },
+    addSubject: { en: "Add subject", ar: "أضف المادة" },
+    freeCap: { en: "Free plan: up to 3 subjects.", ar: "الباقة المجانية: 3 مواد بحد أقصى." },
+    minOne: { en: "Add at least one subject.", ar: "لازم مادة واحدة على الأقل." },
+    step2Title: { en: "Your weekly goal", ar: "هدفك الأسبوعي" },
+    step2Sub: { en: "How many hours a week do you want to study?", ar: "كام ساعة في الأسبوع عايز تذاكر؟" },
+    weeklyUnit: { en: "hours per week", ar: "ساعة في الأسبوع" },
+    dailyGoal: { en: "Daily goal (hours)", ar: "الهدف اليومي (ساعات)" },
+    finish: { en: "Finish", ar: "يلا نبدأ" },
     startTimer: { en: "Start Timer", ar: "ابدأ المؤقت" },
     skip: { en: "Skip", ar: "تخطي" },
     next: { en: "Next", ar: "التالي" },
+    back: { en: "Back", ar: "رجوع" },
+    welcome: { en: "Welcome", ar: "أهلاً" },
   },
 
   // Dashboard
@@ -215,19 +228,24 @@ export const t = {
     evening: { en: "Good evening", ar: "مساء الخير يا" },
     today: { en: "Today", ar: "النهارده" },
     hours: { en: "hours", ar: "ساعات" },
-    noSessions: { en: "No sessions yet. Start now!", ar: "مفيش جلسات لسه. ابدأ دلوقتي!" },
+    noSessions: { en: "No sessions yet. Start your session!", ar: "مفيش جلسات لسه. ابدأ جلستك!" },
     yourSubjects: { en: "YOUR SUBJECTS", ar: "مواديك" },
     addFirstSubject: { en: "Add your first subject", ar: "أضف أول مادة" },
     todaySchedule: { en: "TODAY'S SCHEDULE", ar: "جدول النهارده" },
     noScheduleFree: { en: "Plan your week with Pro", ar: "خطط أسبوعك مع برو" },
-    noSchedule: { en: "No sessions planned. Add to your schedule →", ar: "مفيش جلسات متخطط لها. أضف للجدول ←" },
+    noSchedule: { en: "No sessions planned today. Add to your schedule →", ar: "مفيش جلسات متخططة لليوم. أضف للجدول ←" },
     daysStreak: { en: "day streak", ar: "يوم متتالي" },
     quickAnalytics: { en: "View Analytics", ar: "شوف التحليلات" },
     quickStreaks: { en: "Full Streaks", ar: "السلاسل" },
     quickInvite: { en: "Invite Friends", ar: "ادعو أصحابك" },
+    quickReadiness: { en: "Exam Readiness", ar: "درجة الاستعداد" },
     start: { en: "Start", ar: "ابدأ" },
     weekGoal: { en: "hrs/week", ar: "ساعة/أسبوع" },
+    thisWeek: { en: "this week", ar: "الأسبوع ده" },
+    becauseDream: { en: "because you're heading to", ar: "عشان إنت بتذاكر لـ" },
+    dreamStreak: { en: "days in a row bringing you closer to", ar: "أيام متتاليين قرّبوك من" },
   },
+
 
   // Timer
   timer: {
