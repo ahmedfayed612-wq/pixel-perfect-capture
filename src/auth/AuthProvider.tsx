@@ -15,6 +15,17 @@ type Profile = {
   referral_credits_egp: number;
   referred_by_user_id: string | null;
   daily_goal_hours: number;
+  weekly_goal_hours: number;
+  dream_college: string | null;
+  pomodoro_focus_min: number;
+  pomodoro_short_break_min: number;
+  pomodoro_long_break_min: number;
+  pomodoro_rounds: number;
+  notify_streak_risk: boolean;
+  notify_daily_reminder: boolean;
+  notify_weekly_summary: boolean;
+  notify_block_reminder: boolean;
+  plan: string;
   onboarding_complete: boolean;
 };
 
