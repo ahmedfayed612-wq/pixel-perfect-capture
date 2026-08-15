@@ -15,6 +15,7 @@ const navItems = [
   { to: "/app/subjects", icon: BookOpen, label: t.nav.subjects, pro: false },
   { to: "/app/schedule", icon: Calendar, label: t.nav.schedule, pro: true },
   { to: "/app/analytics", icon: BarChart3, label: t.nav.analytics, pro: true },
+  { to: "/app/readiness", icon: Target, label: t.nav.readiness, pro: true },
   { to: "/app/streaks", icon: Flame, label: t.nav.streaks, pro: false },
   { to: "/app/invite", icon: Gift, label: t.nav.invite, pro: false },
 ] as const;

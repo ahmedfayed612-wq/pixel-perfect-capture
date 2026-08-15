@@ -23,6 +23,7 @@ import { Route as AppSubjectsRouteImport } from './routes/app.subjects'
 import { Route as AppStreaksRouteImport } from './routes/app.streaks'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppScheduleRouteImport } from './routes/app.schedule'
+import { Route as AppReadinessRouteImport } from './routes/app.readiness'
 import { Route as AppInviteRouteImport } from './routes/app.invite'
 import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
 
@@ -96,6 +97,11 @@ const AppScheduleRoute = AppScheduleRouteImport.update({
   path: '/schedule',
   getParentRoute: () => AppRoute,
 } as any)
+const AppReadinessRoute = AppReadinessRouteImport.update({
+  id: '/readiness',
+  path: '/readiness',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppInviteRoute = AppInviteRouteImport.update({
   id: '/invite',
   path: '/invite',
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/invite': typeof AppInviteRoute
+  '/app/readiness': typeof AppReadinessRoute
   '/app/schedule': typeof AppScheduleRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/streaks': typeof AppStreaksRoute
@@ -134,6 +141,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/invite': typeof AppInviteRoute
+  '/app/readiness': typeof AppReadinessRoute
   '/app/schedule': typeof AppScheduleRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/streaks': typeof AppStreaksRoute
@@ -153,6 +161,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/invite': typeof AppInviteRoute
+  '/app/readiness': typeof AppReadinessRoute
   '/app/schedule': typeof AppScheduleRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/streaks': typeof AppStreaksRoute
@@ -173,6 +182,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/app/analytics'
     | '/app/invite'
+    | '/app/readiness'
     | '/app/schedule'
     | '/app/settings'
     | '/app/streaks'
@@ -190,6 +200,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/app/analytics'
     | '/app/invite'
+    | '/app/readiness'
     | '/app/schedule'
     | '/app/settings'
     | '/app/streaks'
@@ -208,6 +219,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/app/analytics'
     | '/app/invite'
+    | '/app/readiness'
     | '/app/schedule'
     | '/app/settings'
     | '/app/streaks'
@@ -327,6 +339,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppScheduleRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/readiness': {
+      id: '/app/readiness'
+      path: '/readiness'
+      fullPath: '/app/readiness'
+      preLoaderRoute: typeof AppReadinessRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/invite': {
       id: '/app/invite'
       path: '/invite'
@@ -347,6 +366,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppInviteRoute: typeof AppInviteRoute
+  AppReadinessRoute: typeof AppReadinessRoute
   AppScheduleRoute: typeof AppScheduleRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStreaksRoute: typeof AppStreaksRoute
@@ -359,6 +379,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAnalyticsRoute: AppAnalyticsRoute,
   AppInviteRoute: AppInviteRoute,
+  AppReadinessRoute: AppReadinessRoute,
   AppScheduleRoute: AppScheduleRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStreaksRoute: AppStreaksRoute,
