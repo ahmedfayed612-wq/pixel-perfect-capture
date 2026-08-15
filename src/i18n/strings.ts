@@ -305,12 +305,101 @@ export const t = {
     deleted: { en: "Block deleted", ar: "اتمسحت" },
   },
 
+  // Post-session questionnaire
+  session: {
+    done: { en: "Session complete! 🎉", ar: "خلصت الجلسة! 🎉" },
+    q1: { en: "Focus: how focused were you?", ar: "مستوى التركيز: قد إيه كنت مركز خلال الجلسة؟" },
+    q2: { en: "Comprehension: how much did you understand?", ar: "مستوى الفهم: قد إيه فهمت اللي ذاكرته؟" },
+    q3: { en: "Mental fatigue: how tired were you at the end?", ar: "الإجهاد الذهني: قد إيه كنت تعبان ذهنياً في الآخر؟" },
+    topic: { en: "Topic / chapter (optional)", ar: "الموضوع/الفصل (اختياري)" },
+    topicPlaceholder: { en: "e.g. Chapter 3 — Calculus", ar: "مثلاً الفصل الثالث - التفاضل والتكامل" },
+    note: { en: "Add a note (optional)", ar: "أضف ملاحظة (اختياري)" },
+    save: { en: "Save session", ar: "احفظ الجلسة" },
+    discard: { en: "Not important", ar: "مش مهم" },
+  },
+
+  // Pomodoro
+  pomodoro: {
+    stopwatch: { en: "Stopwatch", ar: "إيقاف ساعة" },
+    pomodoro: { en: "Pomodoro", ar: "بومودورو" },
+    focus: { en: "Focus", ar: "تركيز" },
+    shortBreak: { en: "Short break", ar: "راحة قصيرة" },
+    longBreak: { en: "Long break", ar: "راحة طويلة" },
+    round: { en: "of", ar: "من" },
+    rounds: { en: "rounds", ar: "جلسة" },
+    settings: { en: "Pomodoro settings", ar: "إعدادات بومودورو" },
+    focusMin: { en: "Focus time (min)", ar: "وقت التركيز (دقيقة)" },
+    shortMin: { en: "Short break (min)", ar: "وقت الراحة القصيرة (دقيقة)" },
+    longMin: { en: "Long break (min)", ar: "وقت الراحة الطويلة (دقيقة)" },
+    roundsField: { en: "Rounds before long break", ar: "عدد الجلسات قبل الراحة الطويلة" },
+    freeSession: { en: "Free session", ar: "جلسة حرة" },
+    todayLog: { en: "Today's sessions", ar: "جلسات النهارده" },
+    todayTotal: { en: "Today's total", ar: "إجمالي النهارده" },
+    emptyLog: { en: "You haven't studied today yet 😶", ar: "لسه النهارده مذاكرتش 😶" },
+  },
+
+  // Exam readiness
+  readiness: {
+    title: { en: "Exam Readiness", ar: "درجة الاستعداد للامتحان" },
+    sub: { en: "A real score per subject, from your own sessions.", ar: "درجة حقيقية لكل مادة، من جلساتك إنت." },
+    prompt: { en: "See how ready you really are.", ar: "اعرف إنت مستعد فعلاً قد إيه." },
+    empty: { en: "Add subjects and log sessions to see your score.", ar: "أضف مواد وسجّل جلسات علشان تشوف درجتك." },
+  },
+
+  // Session log
+  log: {
+    title: { en: "Full Session Log", ar: "السجل الكامل" },
+    allSubjects: { en: "All subjects", ar: "كل المواد" },
+    allTypes: { en: "All types", ar: "كل الأنواع" },
+    range7: { en: "Last week", ar: "آخر أسبوع" },
+    range30: { en: "Last month", ar: "آخر شهر" },
+    rangeAll: { en: "All time", ar: "كل الوقت" },
+    totalSessions: { en: "Total sessions", ar: "إجمالي الجلسات" },
+    totalTime: { en: "Total time", ar: "إجمالي الوقت" },
+    avgQuality: { en: "Average quality", ar: "متوسط جودة الجلسات" },
+    empty: { en: "No sessions here — start studying now", ar: "مفيش جلسات هنا — ابدأ مذاكرة دلوقتي" },
+    focus: { en: "Focus", ar: "تركيز" },
+    comprehension: { en: "Understanding", ar: "فهم" },
+    fatigue: { en: "Fatigue", ar: "إجهاد" },
+  },
+
+  // Analytics extras
+  analytics: {
+    range7: { en: "Last 7 days", ar: "آخر 7 أيام" },
+    range30: { en: "30 days", ar: "30 يوم" },
+    rangeAll: { en: "All time", ar: "كل الوقت" },
+    totalHours: { en: "Total study hours", ar: "إجمالي ساعات المذاكرة" },
+    thisWeek: { en: "Hours this week", ar: "ساعات الأسبوع ده" },
+    dailyAvg: { en: "Daily average", ar: "متوسط يومي" },
+    longest: { en: "Longest session", ar: "أطول جلسة" },
+    bySubject: { en: "Time by subject", ar: "توزيع الوقت بين المواد" },
+    daily: { en: "Daily time", ar: "الوقت اليومي" },
+    byType: { en: "How you spend your time", ar: "كيف بتقضي وقتك" },
+    quality: { en: "Session quality", ar: "جودة الجلسات" },
+    perSubject: { en: "Per-subject breakdown", ar: "تفاصيل كل مادة" },
+    avgWeekly: { en: "Weekly average", ar: "متوسط أسبوعي" },
+    bestDay: { en: "Best day of week", ar: "أفضل يوم في الأسبوع" },
+    noData: { en: "No data yet.", ar: "مفيش بيانات لسه." },
+  },
+
+  // Streaks extras
+  challenge: {
+    title: { en: "Weekly challenge", ar: "تحدي الأسبوع" },
+    body: { en: "Study 5 days this week", ar: "ذاكر 5 أيام الأسبوع ده" },
+    days: { en: "days", ar: "أيام" },
+    done: { en: "Challenge complete! 🏅", ar: "خلصت التحدي! 🏅" },
+    badges: { en: "Milestones & badges", ar: "الإنجازات والشارات" },
+    locked: { en: "Locked", ar: "مقفول" },
+  },
+
   common: {
     loading: { en: "Loading…", ar: "جاري التحميل…" },
     cancel: { en: "Cancel", ar: "إلغاء" },
     confirm: { en: "Confirm", ar: "تأكيد" },
+    save: { en: "Save", ar: "احفظ" },
   },
 };
+
 
 export type StringPair = { en: string; ar: string };
 export const tr = (pair: StringPair, lang: Lang) => pair[lang];
