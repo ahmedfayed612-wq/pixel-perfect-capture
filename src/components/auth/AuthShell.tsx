@@ -58,6 +58,27 @@ export function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   );
 }
 
+export function PasswordInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        {...props}
+        type={show ? "text" : "password"}
+        className="block h-12 w-full rounded-lg border border-light-grey bg-white px-4 pe-12 text-sm text-near-black outline-none transition-colors placeholder:text-mid-grey focus:border-teal focus:ring-2 focus:ring-teal/20"
+      />
+      <button
+        type="button"
+        onClick={() => setShow((v) => !v)}
+        aria-label={show ? "Hide password" : "Show password"}
+        className="absolute inset-y-0 end-0 flex w-12 items-center justify-center text-mid-grey hover:text-teal"
+      >
+        {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+      </button>
+    </div>
+  );
+}
+
 export function PrimaryButton({
   children,
   loading,
