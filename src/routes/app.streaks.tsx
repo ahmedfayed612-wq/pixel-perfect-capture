@@ -146,7 +146,7 @@ function StreaksPage() {
               disabled={weekDays < (challenge?.target_days ?? 5)}
               className="h-10 rounded-lg bg-teal px-5 text-cta text-white disabled:opacity-50"
             >
-              {tr(t.challenge.done, lang)}
+              {tr(t.challenge.claim, lang)}
             </button>
           )}
         </div>
