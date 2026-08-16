@@ -1,6 +1,6 @@
 import { Link, Outlet, createFileRoute, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { Home, Timer, BookOpen, Calendar, BarChart3, Flame, Gift, Settings, LogOut, Lock, Target } from "lucide-react";
+import { Home, Timer, BookOpen, Calendar, BarChart3, Flame, Gift, Settings, LogOut, Lock, Target, ListChecks } from "lucide-react";
 import { useAuth } from "@/auth/AuthProvider";
 import { useLang } from "@/i18n/LangProvider";
 import { tr, t } from "@/i18n/strings";
@@ -16,6 +16,7 @@ const navItems = [
   { to: "/app/schedule", icon: Calendar, label: t.nav.schedule, pro: true },
   { to: "/app/analytics", icon: BarChart3, label: t.nav.analytics, pro: true },
   { to: "/app/readiness", icon: Target, label: t.nav.readiness, pro: true },
+  { to: "/app/log", icon: ListChecks, label: t.nav.log, pro: false },
   { to: "/app/streaks", icon: Flame, label: t.nav.streaks, pro: false },
   { to: "/app/invite", icon: Gift, label: t.nav.invite, pro: false },
 ] as const;
@@ -110,9 +111,8 @@ function AppLayout() {
         {[
           { to: "/app", icon: Home, label: t.nav.dashboard, exact: true },
           { to: "/app/timer", icon: Timer, label: t.nav.timer },
-          { to: "/app/subjects", icon: BookOpen, label: t.nav.subjects },
-          { to: "/app/streaks", icon: Flame, label: t.nav.streaks },
-          { to: "/app/settings", icon: Settings, label: t.nav.settings },
+          { to: "/app/analytics", icon: BarChart3, label: t.nav.analytics },
+          { to: "/app/readiness", icon: Target, label: t.nav.readiness },
         ].map((item) => {
           const active =
             "exact" in item && item.exact ? loc.pathname === item.to : loc.pathname.startsWith(item.to);

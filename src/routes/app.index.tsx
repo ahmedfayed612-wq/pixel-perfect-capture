@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plus, Play, Lock, Quote } from "lucide-react";
+import { Plus, Play, Lock, Quote, BarChart3, Calendar, Target, Gift, Flame, BookOpen, ListChecks, Settings, Timer } from "lucide-react";
 import { useAuth } from "@/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/i18n/LangProvider";
 import { tr, t } from "@/i18n/strings";
 import { LangToggle } from "@/components/brand/LangToggle";
-import { todayISO, todayDow, weekStartISO, quoteOfDay, fmtDuration } from "@/lib/waqti";
+import { todayISO, todayDow, weekStartISO, quoteOfDay, fmtDuration, toISO } from "@/lib/waqti";
 
 export const Route = createFileRoute("/app/")({ component: Dashboard });
 
@@ -31,6 +31,7 @@ function Dashboard() {
   const [lastSession, setLastSession] = useState<Record<string, string>>({});
   const [streak, setStreak] = useState<Streak | null>(null);
   const [todayBlocks, setTodayBlocks] = useState<ScheduleBlock[]>([]);
+  const [last7, setLast7] = useState<{ label: string; minutes: number }[]>([]);
 
   useEffect(() => {
     if (!profile) return;
@@ -55,6 +56,24 @@ function Dashboard() {
       setTodayMinutes((sess ?? []).reduce((a: number, s: any) => a + s.duration_minutes, 0));
       setStreak((st as Streak) ?? { current_streak: 0, longest_streak: 0, last_study_date: null });
       setTodayBlocks((sched as ScheduleBlock[]) ?? []);
+
+      const since = new Date();
+      since.setDate(since.getDate() - 6);
+      const { data: recent } = await supabase
+        .from("sessions")
+        .select("date,duration_minutes")
+        .gte("date", toISO(since));
+      const dayMap: Record<string, number> = {};
+      (recent ?? []).forEach((r: any) => {
+        dayMap[r.date] = (dayMap[r.date] ?? 0) + r.duration_minutes;
+      });
+      const series: { label: string; minutes: number }[] = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        series.push({ label: toISO(d).slice(8), minutes: dayMap[toISO(d)] ?? 0 });
+      }
+      setLast7(series);
 
       const byS: Record<string, number> = {};
       const last: Record<string, string> = {};
@@ -81,6 +100,8 @@ function Dashboard() {
       : tr(t.streaks.msg0, lang)
     : tr(cur === 0 ? t.streaks.msg0 : cur < 7 ? t.streaks.msg1to6 : t.streaks.msg7plus, lang);
   const quote = quoteOfDay();
+  const week7 = last7.reduce((a, b) => a + b.minutes, 0);
+  const maxDay = Math.max(0, ...last7.map((d) => d.minutes));
 
   const ordered = [...subjects].sort((a, b) => (lastSession[b.id] ?? "").localeCompare(lastSession[a.id] ?? ""));
   const visibleSubjects = profile?.is_pro ? ordered : ordered.slice(0, 3);
@@ -243,23 +264,74 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Quick links */}
-      <div className="mt-8 flex flex-wrap gap-3">
-        {[
-          { to: "/app/analytics", label: t.dashboard.quickAnalytics },
-          { to: "/app/readiness", label: t.dashboard.quickReadiness },
-          { to: "/app/streaks", label: t.dashboard.quickStreaks },
-          { to: "/app/invite", label: t.dashboard.quickInvite },
-        ].map((q) => (
-          <Link
-            key={q.to}
-            to={q.to}
-            className="inline-flex h-9 items-center rounded-lg border border-teal bg-white px-4 text-xs font-semibold text-teal hover:bg-teal/5"
-          >
-            {tr(q.label, lang)}
+      {/* Quick analytics */}
+      <div className="surface-card mt-8 p-5">
+        <div className="flex items-center justify-between">
+          <div className="text-label">{tr(t.analytics.range7, lang)}</div>
+          <Link to="/app/analytics" className="text-xs font-semibold text-teal hover:underline">
+            {tr(t.nav.analytics, lang)} →
           </Link>
-        ))}
+        </div>
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          <MiniStat label={tr(t.analytics.thisWeek, lang)} value={`${(week7 / 60).toFixed(1)}h`} />
+          <MiniStat label={tr(t.analytics.dailyAvg, lang)} value={`${(week7 / 7 / 60).toFixed(1)}h`} />
+          <MiniStat label={tr(t.analytics.bestDay, lang)} value={`${(maxDay / 60).toFixed(1)}h`} />
+        </div>
+        <div className="mt-5 flex h-24 items-end gap-2">
+          {last7.map((d) => (
+            <div key={d.label} className="flex flex-1 flex-col items-center gap-1">
+              <div
+                className="w-full rounded-t-md bg-teal"
+                style={{ height: `${maxDay ? Math.max(4, (d.minutes / maxDay) * 72) : 4}px` }}
+                title={fmtDuration(d.minutes, lang)}
+              />
+              <span className="text-[10px] tabular-nums text-mid-grey">{d.label}</span>
+            </div>
+          ))}
+        </div>
       </div>
+
+      {/* Everything in Waqti */}
+      <div className="mt-8">
+        <div className="text-label">{lang === "ar" ? "كل حاجة في وقتي" : "Everything in Waqti"}</div>
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {[
+            { to: "/app/timer", icon: Timer, label: t.nav.timer, pro: false },
+            { to: "/app/subjects", icon: BookOpen, label: t.nav.subjects, pro: false },
+            { to: "/app/schedule", icon: Calendar, label: t.nav.schedule, pro: true },
+            { to: "/app/analytics", icon: BarChart3, label: t.nav.analytics, pro: true },
+            { to: "/app/readiness", icon: Target, label: t.nav.readiness, pro: true },
+            { to: "/app/log", icon: ListChecks, label: t.nav.log, pro: false },
+            { to: "/app/streaks", icon: Flame, label: t.nav.streaks, pro: false },
+            { to: "/app/invite", icon: Gift, label: t.nav.invite, pro: false },
+            { to: "/app/settings", icon: Settings, label: t.nav.settings, pro: false },
+          ].map((item) => {
+            const Icon = item.icon;
+            const locked = item.pro && !profile?.is_pro;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="surface-card relative flex flex-col items-start gap-2 p-4 transition-colors hover:border-teal/40"
+              >
+                <Icon className="h-5 w-5 text-teal" />
+                <span className="text-sm font-semibold text-near-black">{tr(item.label, lang)}</span>
+                {locked && <Lock className="absolute end-3 top-3 h-3.5 w-3.5 text-gold" />}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-light-grey p-3">
+      <div className="text-[10px] text-mid-grey">{label}</div>
+      <div className="mt-1 text-lg font-extrabold tabular-nums text-teal">{value}</div>
     </div>
   );
 }

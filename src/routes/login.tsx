@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AuthShell, Field, TextInput, PrimaryButton } from "@/components/auth/AuthShell";
+import { AuthShell, Field, TextInput, PasswordInput, PrimaryButton } from "@/components/auth/AuthShell";
 import { useLang } from "@/i18n/LangProvider";
 import { tr, t } from "@/i18n/strings";
 import { toast } from "sonner";
@@ -34,7 +34,7 @@ function LoginPage() {
           <TextInput type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         </Field>
         <Field label={tr(t.auth.password, lang)}>
-          <TextInput type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+          <PasswordInput required value={password} onChange={(e) => setPassword(e.target.value)} />
         </Field>
         <div className="flex justify-end">
           <Link to="/forgot-password" className="text-sm font-medium text-teal hover:underline">

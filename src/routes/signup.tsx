@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AuthShell, Field, TextInput, PrimaryButton } from "@/components/auth/AuthShell";
+import { AuthShell, Field, TextInput, PasswordInput, PrimaryButton } from "@/components/auth/AuthShell";
 import { useLang } from "@/i18n/LangProvider";
 import { tr, t } from "@/i18n/strings";
 import { toast } from "sonner";
@@ -27,7 +27,7 @@ function SignupPage() {
     e.preventDefault();
     setLoading(true);
     const redirectTo = `${window.location.origin}/onboarding`;
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -43,6 +43,10 @@ function SignupPage() {
     setLoading(false);
     if (error) {
       toast.error(error.message || tr(t.auth.genericError, lang));
+      return;
+    }
+    if (data.session) {
+      navigate({ to: "/onboarding" });
       return;
     }
     setSuccess(true);
@@ -72,7 +76,7 @@ function SignupPage() {
           <TextInput type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         </Field>
         <Field label={tr(t.auth.password, lang)}>
-          <TextInput type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+          <PasswordInput required value={password} onChange={(e) => setPassword(e.target.value)} />
         </Field>
         <div>
           <span className="mb-2 block text-sm font-medium text-near-black">{tr(t.auth.studentType, lang)}</span>

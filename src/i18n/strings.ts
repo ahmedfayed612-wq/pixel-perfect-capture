@@ -410,6 +410,7 @@ export const t = {
     done: { en: "Challenge complete! 🏅", ar: "خلصت التحدي! 🏅" },
     badges: { en: "Milestones & badges", ar: "الإنجازات والشارات" },
     locked: { en: "Locked", ar: "مقفول" },
+    claim: { en: "Claim reward", ar: "استلم الجايزة" },
   },
 
   common: {

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AuthShell, Field, TextInput, PrimaryButton } from "@/components/auth/AuthShell";
+import { AuthShell, Field, PasswordInput, PrimaryButton } from "@/components/auth/AuthShell";
 import { useLang } from "@/i18n/LangProvider";
 import { tr, t } from "@/i18n/strings";
 import { toast } from "sonner";
@@ -31,7 +31,7 @@ function ResetPage() {
     <AuthShell title={tr(t.auth.resetTitle, lang)}>
       <form onSubmit={onSubmit} className="space-y-5">
         <Field label={tr(t.auth.password, lang)}>
-          <TextInput type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+          <PasswordInput required value={password} onChange={(e) => setPassword(e.target.value)} />
         </Field>
         <PrimaryButton loading={loading}>{tr(t.auth.submitReset, lang)}</PrimaryButton>
       </form>
