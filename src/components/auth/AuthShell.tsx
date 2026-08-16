@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { LangToggle } from "@/components/brand/LangToggle";
 import { useLang } from "@/i18n/LangProvider";
