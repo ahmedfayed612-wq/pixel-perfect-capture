@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AuthShell, Field, TextInput, PasswordInput, PrimaryButton } from "@/components/auth/AuthShell";
+import { AuthShell, Field, PasswordInput, PrimaryButton } from "@/components/auth/AuthShell";
 import { useLang } from "@/i18n/LangProvider";
 import { tr, t } from "@/i18n/strings";
 import { toast } from "sonner";
