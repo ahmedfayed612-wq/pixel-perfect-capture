@@ -288,6 +288,21 @@ function TimerPage() {
             })}
           </select>
 
+          {/* Block type segmented control */}
+          <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg bg-light-grey/60 p-1">
+            {(["homework", "lecture", "study"] as const).map((k) => (
+              <button
+                key={k}
+                onClick={() => run === "idle" && setBlockType(k)}
+                className={`h-10 rounded-md text-sm font-semibold transition-colors ${
+                  blockType === k ? "bg-white text-teal shadow-sm" : "text-mid-grey"
+                }`}
+              >
+                {tr(t.schedule[k], lang)}
+              </button>
+            ))}
+          </div>
+
           {/* Mode toggle */}
           <div className="mt-4 grid grid-cols-2 gap-2 rounded-lg bg-light-grey/60 p-1">
             {(["stopwatch", "pomodoro"] as const).map((m) => (
