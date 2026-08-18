@@ -53,6 +53,7 @@ function TimerPage() {
   const [log, setLog] = useState<LogRow[]>([]);
   const [selection, setSelection] = useState<string>(""); // "subject:<id>" | "block:<id>"
   const [mode, setMode] = useState<"stopwatch" | "pomodoro">("stopwatch");
+  const [blockType, setBlockType] = useState<BlockType>("study");
 
   const [run, setRun] = useState<RunState>("idle");
   const [seconds, setSeconds] = useState(0); // elapsed focus seconds (counted for the session)
