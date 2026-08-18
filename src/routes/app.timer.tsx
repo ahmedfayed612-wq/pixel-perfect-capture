@@ -53,6 +53,7 @@ function TimerPage() {
   const [log, setLog] = useState<LogRow[]>([]);
   const [selection, setSelection] = useState<string>(""); // "subject:<id>" | "block:<id>"
   const [mode, setMode] = useState<"stopwatch" | "pomodoro">("stopwatch");
+  const [blockType, setBlockType] = useState<BlockType>("study");
 
   const [run, setRun] = useState<RunState>("idle");
   const [seconds, setSeconds] = useState(0); // elapsed focus seconds (counted for the session)
@@ -164,6 +165,11 @@ function TimerPage() {
     return { subjectId: null, blockId: null, blockType: "study" as BlockType };
   }, [selection, blocks]);
 
+  // Auto-set block type from a picked scheduled block (still editable)
+  useEffect(() => {
+    if (selection.startsWith("block:")) setBlockType(parsed.blockType);
+  }, [selection, parsed.blockType]);
+
   const subject = subjects.find((s) => s.id === parsed.subjectId);
   const subjName = (s?: Subject) => (s ? (lang === "ar" && s.name_ar ? s.name_ar : s.name) : "");
   const color = subject?.color ?? "var(--color-teal)";
@@ -207,7 +213,7 @@ function TimerPage() {
       user_id: user.id,
       subject_id: parsed.subjectId,
       schedule_block_id: parsed.blockId,
-      block_type: parsed.blockType,
+      block_type: blockType,
       duration_minutes: Math.max(1, Math.round(seconds / 60)),
       date: todayISO(),
       notes: notes.trim() || null,
@@ -281,6 +287,21 @@ function TimerPage() {
               );
             })}
           </select>
+
+          {/* Block type segmented control */}
+          <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg bg-light-grey/60 p-1">
+            {(["homework", "lecture", "study"] as const).map((k) => (
+              <button
+                key={k}
+                onClick={() => run === "idle" && setBlockType(k)}
+                className={`h-10 rounded-md text-sm font-semibold transition-colors ${
+                  blockType === k ? "bg-white text-teal shadow-sm" : "text-mid-grey"
+                }`}
+              >
+                {tr(t.schedule[k], lang)}
+              </button>
+            ))}
+          </div>
 
           {/* Mode toggle */}
           <div className="mt-4 grid grid-cols-2 gap-2 rounded-lg bg-light-grey/60 p-1">
