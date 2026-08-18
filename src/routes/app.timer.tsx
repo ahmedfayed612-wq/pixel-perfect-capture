@@ -165,6 +165,11 @@ function TimerPage() {
     return { subjectId: null, blockId: null, blockType: "study" as BlockType };
   }, [selection, blocks]);
 
+  // Auto-set block type from a picked scheduled block (still editable)
+  useEffect(() => {
+    if (selection.startsWith("block:")) setBlockType(parsed.blockType);
+  }, [selection, parsed.blockType]);
+
   const subject = subjects.find((s) => s.id === parsed.subjectId);
   const subjName = (s?: Subject) => (s ? (lang === "ar" && s.name_ar ? s.name_ar : s.name) : "");
   const color = subject?.color ?? "var(--color-teal)";
@@ -208,7 +213,7 @@ function TimerPage() {
       user_id: user.id,
       subject_id: parsed.subjectId,
       schedule_block_id: parsed.blockId,
-      block_type: parsed.blockType,
+      block_type: blockType,
       duration_minutes: Math.max(1, Math.round(seconds / 60)),
       date: todayISO(),
       notes: notes.trim() || null,
