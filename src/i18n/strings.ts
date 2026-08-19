@@ -135,7 +135,8 @@ export const t = {
     pro: {
       badge: { en: "MOST POPULAR", ar: "الأكثر اختياراً" },
       title: { en: "Pro", ar: "برو" },
-      price: { en: "30 EGP / month", ar: "30 جنيه / شهر" },
+      original: { en: "60 EGP", ar: "60 ج.م" },
+      price: { en: "45 EGP / month", ar: "45 ج.م / شهر" },
       sub: { en: "First month 30 EGP — 15 EGP donated to Resala", ar: "أول شهر 30 جنيه — بنتبرع بـ 15 منهم لرسالة" },
       features: [
         { en: "Everything in Free", ar: "كل اللي في المجاني" },
@@ -148,7 +149,44 @@ export const t = {
       ],
       cta: { en: "Upgrade to Pro", ar: "اشترك في برو" },
     },
+    nine: {
+      badge: { en: "SAVE 3 MONTHS", ar: "وفر 3 شهور" },
+      title: { en: "9 months for the price of 6", ar: "9 شهور بسعر 6" },
+      price: { en: "270 EGP / 9 months", ar: "270 ج.م / 9 شهور" },
+      sub: { en: "30 EGP per month — billed once", ar: "يعني 30 ج.م في الشهر — دفعة واحدة" },
+      features: [
+        { en: "Everything in Pro", ar: "كل مميزات برو" },
+        { en: "9 full months of access", ar: "9 شهور كاملة" },
+        { en: "3 months free vs monthly", ar: "3 شهور مجاناً مقارنة بالشهري" },
+      ],
+      cta: { en: "Get the 9-month plan", ar: "اشترك 9 شهور" },
+    },
   },
+  refund: {
+    nav: { en: "Refund Policy", ar: "سياسة الاسترجاع" },
+    h1: { en: "Refund Policy", ar: "سياسة الاسترجاع" },
+    guarantee: {
+      en: "7-day money-back guarantee from the purchase date — no questions asked.",
+      ar: "ضمان استرجاع فلوسك خلال 7 أيام من تاريخ الشراء — من غير أي أسئلة.",
+    },
+    body: {
+      en: "If Waqti isn't for you, request a refund within 7 days of your purchase date and we'll return the full amount. Your account data stays intact; you simply go back to the Free plan.",
+      ar: "لو وقتي مش مناسب ليك، اطلب الاسترجاع خلال 7 أيام من تاريخ الشراء وهنرجعلك المبلغ كامل. بياناتك كلها بتفضل زي ما هي، وحسابك بيرجع للباقة المجانية.",
+    },
+    how: {
+      en: "How to request: message us on WhatsApp with the phone number or email you used, and we'll process it within 3 working days.",
+      ar: "إزاي تطلبه: ابعتلنا على واتساب برقم التليفون أو الإيميل اللي اشتركت بيه، وهنعالج الطلب خلال 3 أيام عمل.",
+    },
+    after: {
+      en: "After 7 days from the purchase date, subscriptions are non-refundable, but you keep access until your period ends.",
+      ar: "بعد 7 أيام من تاريخ الشراء، الاشتراك مش قابل للاسترجاع، بس بتفضل مستخدم برو لحد ما مدتك تخلص.",
+    },
+  },
+  contact: {
+    whatsapp: { en: "Contact us on WhatsApp", ar: "تواصل معنا واتساب" },
+    label: { en: "Contact", ar: "تواصل معنا" },
+  },
+
   charity: {
     body: { en: "Donated to Resala Charity so far", ar: "اتبرعنا بيها لجمعية رسالة لحد دلوقتي" },
     sub: { en: "15 EGP from every student's first month subscription", ar: "15 جنيه من أول اشتراك لكل طالب" },
