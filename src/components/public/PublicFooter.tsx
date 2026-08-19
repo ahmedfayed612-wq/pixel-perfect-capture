@@ -16,6 +16,15 @@ export function PublicFooter() {
         <nav className="flex flex-col gap-2 text-sm text-off-white/80 md:items-center">
           <Link to="/" className="hover:text-off-white">{tr(t.nav.home, lang)}</Link>
           <a href="#pricing" className="hover:text-off-white">{tr(t.nav.pricing, lang)}</a>
+          <Link to="/refund" className="hover:text-off-white">{tr(t.refund.nav, lang)}</Link>
+          <a
+            href="https://wa.me/201020943875"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-off-white"
+          >
+            {tr(t.contact.whatsapp, lang)}
+          </a>
           <Link to="/login" className="hover:text-off-white">{tr(t.nav.login, lang)}</Link>
           <Link to="/signup" className="hover:text-off-white">{tr(t.nav.signup, lang)}</Link>
         </nav>
@@ -23,6 +32,7 @@ export function PublicFooter() {
           <LangToggle onDark />
         </div>
       </div>
+
       <div className="mx-auto mt-10 max-w-[1200px] border-t border-white/10 pt-6 text-xs text-mid-grey">
         {tr(t.footer.copy, lang)}
       </div>
