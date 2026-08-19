@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { useAuth } from "@/auth/AuthProvider";
 import { useLang } from "@/i18n/LangProvider";
@@ -30,7 +30,7 @@ function UpgradePage() {
         {tr(t.pricing.launch, lang)}
       </div>
 
-      <div className="mt-8 grid gap-6 md:grid-cols-2">
+      <div className="mt-8 grid gap-6 md:grid-cols-3">
         <div className="surface-card flex flex-col p-6">
           <h3 className="text-2xl font-semibold text-near-black">{tr(t.pricing.free.title, lang)}</h3>
           <div className="mt-1 text-sm text-mid-grey">{tr(t.pricing.free.price, lang)}</div>
@@ -51,7 +51,10 @@ function UpgradePage() {
             {tr(t.pricing.pro.badge, lang)}
           </div>
           <h3 className="text-2xl font-semibold">{tr(t.pricing.pro.title, lang)}</h3>
-          <div className="mt-1 text-sm text-white/80">{tr(t.pricing.pro.price, lang)}</div>
+          <div className="mt-1 flex items-baseline gap-2">
+            <span className="text-sm text-white/60 line-through">{tr(t.pricing.pro.original, lang)}</span>
+            <span className="text-lg font-semibold text-gold">{tr(t.pricing.pro.price, lang)}</span>
+          </div>
           <div className="mt-1 text-xs text-gold-light">{tr(t.pricing.pro.sub, lang)}</div>
           <ul className="mt-6 flex-1 space-y-3">
             {t.pricing.pro.features.map((f, i) => (
@@ -68,7 +71,45 @@ function UpgradePage() {
             {tr(t.pricing.pro.cta, lang)}
           </button>
         </div>
+        <div className="surface-card relative flex flex-col border-2 border-gold p-6">
+          <div className="absolute -top-3 start-6 rounded-full bg-gold px-3 py-1 text-[11px] font-bold tracking-wider text-teal-dark">
+            {tr(t.pricing.nine.badge, lang)}
+          </div>
+          <h3 className="text-2xl font-semibold text-near-black">{tr(t.pricing.nine.title, lang)}</h3>
+          <div className="mt-1 text-lg font-semibold text-teal">{tr(t.pricing.nine.price, lang)}</div>
+          <div className="mt-1 text-xs text-mid-grey">{tr(t.pricing.nine.sub, lang)}</div>
+          <ul className="mt-6 flex-1 space-y-3">
+            {t.pricing.nine.features.map((f, i) => (
+              <li key={i} className="flex items-center gap-3 text-sm">
+                <Check className="h-4 w-4 text-teal" />
+                <span className="text-near-black">{tr(f, lang)}</span>
+              </li>
+            ))}
+          </ul>
+          <button
+            onClick={onUpgrade}
+            className="mt-8 inline-flex h-[52px] items-center justify-center rounded-lg bg-teal text-cta text-white hover:opacity-90"
+          >
+            {tr(t.pricing.nine.cta, lang)}
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-6 text-sm text-dark-grey">
+        <Link to="/refund" className="text-teal underline">
+          {tr(t.refund.nav, lang)}
+        </Link>
+        <span className="mx-2 text-light-grey">·</span>
+        <a
+          href="https://wa.me/201020943875"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-teal underline"
+        >
+          {tr(t.contact.whatsapp, lang)}
+        </a>
       </div>
     </div>
   );
 }
+
