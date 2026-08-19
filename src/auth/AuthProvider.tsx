@@ -47,6 +47,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const loadProfile = async (uid: string) => {
+    // Server-side enforcement: downgrade to Free if the Pro period has ended.
+    try {
+      await supabase.rpc("expire_pro_if_due");
+    } catch {
+      /* non-fatal */
+    }
     const { data } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
     setProfile((data as Profile | null) ?? null);
   };
