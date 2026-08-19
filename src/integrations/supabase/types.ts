@@ -401,6 +401,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      expire_all_pro_subscriptions: { Args: never; Returns: number }
+      expire_pro_if_due: { Args: never; Returns: boolean }
       generate_referral_code: { Args: { _name: string }; Returns: string }
     }
     Enums: {
