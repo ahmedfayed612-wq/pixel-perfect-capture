@@ -25,6 +25,35 @@ type LogRow = { id: string; subject_id: string | null; duration_minutes: number;
 type RunState = "idle" | "running" | "paused";
 type PomoPhase = "focus" | "short" | "long";
 
+const STORAGE_KEY = "waqti.timer.state";
+
+/** All time values are wall-clock timestamps (ms) — never tick counters. */
+type TimerState = {
+  run: RunState;
+  mode: "stopwatch" | "pomodoro";
+  phase: PomoPhase;
+  round: number;
+  /** Date.now() when the current running segment began (null when idle/paused). */
+  startTs: number | null;
+  /** Focus milliseconds banked from finished/paused segments. */
+  focusAccumMs: number;
+  /** Pomodoro: timestamp the current phase should end. */
+  phaseEndTs: number | null;
+  /** Pomodoro: remaining ms of the current phase while paused. */
+  phaseRemainingMs: number | null;
+};
+
+const IDLE: TimerState = {
+  run: "idle",
+  mode: "stopwatch",
+  phase: "focus",
+  round: 1,
+  startTs: null,
+  focusAccumMs: 0,
+  phaseEndTs: null,
+  phaseRemainingMs: null,
+};
+
 // short beep without any asset
 function beep() {
   try {
@@ -52,14 +81,10 @@ function TimerPage() {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [log, setLog] = useState<LogRow[]>([]);
   const [selection, setSelection] = useState<string>(""); // "subject:<id>" | "block:<id>"
-  const [mode, setMode] = useState<"stopwatch" | "pomodoro">("stopwatch");
   const [blockType, setBlockType] = useState<BlockType>("study");
 
-  const [run, setRun] = useState<RunState>("idle");
-  const [seconds, setSeconds] = useState(0); // elapsed focus seconds (counted for the session)
-  const [phase, setPhase] = useState<PomoPhase>("focus");
-  const [phaseLeft, setPhaseLeft] = useState(0);
-  const [round, setRound] = useState(1);
+  const [state, setState] = useState<TimerState>(IDLE);
+  const [now, setNow] = useState(() => Date.now());
 
   const [showModal, setShowModal] = useState(false);
   const [showPomoSettings, setShowPomoSettings] = useState(false);
@@ -69,6 +94,8 @@ function TimerPage() {
   const [topic, setTopic] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  /** Final wall-clock duration of the session shown in the modal. */
+  const [finalMs, setFinalMs] = useState(0);
 
   const focusMin = profile?.pomodoro_focus_min ?? 25;
   const shortMin = profile?.pomodoro_short_break_min ?? 5;
@@ -114,45 +141,118 @@ function TimerPage() {
     })();
   }, [user, loadLog]);
 
-  // ticking
-  const tick = useRef<number | null>(null);
+  // ---- persistence: restore on mount ------------------------------------
+  const restored = useRef(false);
   useEffect(() => {
-    if (run !== "running") return;
-    tick.current = window.setInterval(() => {
-      if (mode === "stopwatch") {
-        setSeconds((s) => s + 1);
-      } else {
-        setPhaseLeft((left) => {
-          if (left > 1) {
-            if (phase === "focus") setSeconds((s) => s + 1);
-            return left - 1;
-          }
-          beep();
-          if (phase === "focus") {
-            setSeconds((s) => s + 1);
-            if (round >= totalRounds) {
-              setPhase("long");
-              return longMin * 60;
-            }
-            setPhase("short");
-            return shortMin * 60;
-          }
-          // break finished
-          if (phase === "long") {
-            setRun("idle");
-            setShowModal(true);
-            return 0;
-          }
-          setRound((r) => r + 1);
-          setPhase("focus");
-          return focusMin * 60;
-        });
-      }
-    }, 1000);
-    return () => {
-      if (tick.current) window.clearInterval(tick.current);
+    if (restored.current) return;
+    restored.current = true;
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as TimerState & { selection?: string; blockType?: BlockType };
+      if (!saved || saved.run === "idle") return;
+      setState({
+        run: saved.run,
+        mode: saved.mode,
+        phase: saved.phase,
+        round: saved.round,
+        startTs: saved.startTs ?? null,
+        focusAccumMs: saved.focusAccumMs ?? 0,
+        phaseEndTs: saved.phaseEndTs ?? null,
+        phaseRemainingMs: saved.phaseRemainingMs ?? null,
+      });
+      if (saved.selection) setSelection(saved.selection);
+      if (saved.blockType) setBlockType(saved.blockType);
+      setNow(Date.now());
+    } catch {
+      /* ignore corrupt state */
+    }
+  }, []);
+
+  // persist on every change
+  useEffect(() => {
+    try {
+      if (state.run === "idle") window.localStorage.removeItem(STORAGE_KEY);
+      else window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, selection, blockType }));
+    } catch {
+      /* storage unavailable */
+    }
+  }, [state, selection, blockType]);
+
+  // ---- ticking: only triggers a recompute, never holds the time ----------
+  useEffect(() => {
+    if (state.run !== "running") return;
+    const id = window.setInterval(() => setNow(Date.now()), 250);
+    return () => window.clearInterval(id);
+  }, [state.run]);
+
+  // catch up instantly when the tab becomes visible again
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === "visible") setNow(Date.now());
     };
-  }, [run, mode, phase, round, focusMin, shortMin, longMin, totalRounds]);
+    window.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", onVis);
+    window.addEventListener("pageshow", onVis);
+    return () => {
+      window.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", onVis);
+      window.removeEventListener("pageshow", onVis);
+    };
+  }, []);
+
+  // ---- derived values ----------------------------------------------------
+  const inFocus = state.mode === "stopwatch" || state.phase === "focus";
+  const focusMs =
+    state.focusAccumMs + (state.run === "running" && inFocus && state.startTs ? Math.max(0, now - state.startTs) : 0);
+  const seconds = Math.floor(focusMs / 1000);
+  const remainingMs =
+    state.mode === "pomodoro"
+      ? state.run === "running" && state.phaseEndTs
+        ? Math.max(0, state.phaseEndTs - now)
+        : (state.phaseRemainingMs ?? 0)
+      : 0;
+
+  // ---- pomodoro phase transitions, driven by timestamps ------------------
+  useEffect(() => {
+    if (state.run !== "running" || state.mode !== "pomodoro" || !state.phaseEndTs) return;
+    if (now < state.phaseEndTs) return;
+
+    setState((s) => {
+      if (s.run !== "running" || s.mode !== "pomodoro" || !s.phaseEndTs) return s;
+      let next = { ...s };
+      let ended = false;
+      // resolve every phase boundary that elapsed while the tab was hidden
+      while (!ended && next.phaseEndTs && Date.now() >= next.phaseEndTs) {
+        const boundary = next.phaseEndTs;
+        if (next.phase === "focus") {
+          next.focusAccumMs += Math.max(0, boundary - (next.startTs ?? boundary));
+          if (next.round >= totalRounds) {
+            next = { ...next, phase: "long", startTs: boundary, phaseEndTs: boundary + longMin * 60_000 };
+          } else {
+            next = { ...next, phase: "short", startTs: boundary, phaseEndTs: boundary + shortMin * 60_000 };
+          }
+        } else if (next.phase === "long") {
+          next = { ...next, run: "idle", startTs: null, phaseEndTs: null, phaseRemainingMs: 0 };
+          ended = true;
+        } else {
+          next = {
+            ...next,
+            round: next.round + 1,
+            phase: "focus",
+            startTs: boundary,
+            phaseEndTs: boundary + focusMin * 60_000,
+          };
+        }
+      }
+      if (ended) {
+        setFinalMs(next.focusAccumMs);
+        setShowModal(true);
+      }
+      return next;
+    });
+    beep();
+  }, [now, state.run, state.mode, state.phaseEndTs, focusMin, shortMin, longMin, totalRounds]);
 
   const parsed = useMemo(() => {
     if (selection.startsWith("block:")) {
@@ -174,36 +274,80 @@ function TimerPage() {
   const subjName = (s?: Subject) => (s ? (lang === "ar" && s.name_ar ? s.name_ar : s.name) : "");
   const color = subject?.color ?? "var(--color-teal)";
 
+  const run = state.run;
+  const mode = state.mode;
+  const phase = state.phase;
+  const round = state.round;
+
+  const setMode = (m: "stopwatch" | "pomodoro") => setState((s) => ({ ...s, mode: m }));
+
   const onStart = () => {
     if (!selection) {
       toast.error(tr(t.timer.addSubjectFirst, lang));
       return;
     }
-    if (mode === "pomodoro" && phaseLeft === 0) {
-      setPhase("focus");
-      setPhaseLeft(focusMin * 60);
-      setRound(1);
-    }
-    setRun("running");
+    const ts = Date.now();
+    setNow(ts);
+    setState((s) => ({
+      ...s,
+      run: "running",
+      round: 1,
+      phase: "focus",
+      startTs: ts,
+      focusAccumMs: 0,
+      phaseEndTs: s.mode === "pomodoro" ? ts + focusMin * 60_000 : null,
+      phaseRemainingMs: null,
+    }));
+  };
+
+  const onPause = () => {
+    const ts = Date.now();
+    setNow(ts);
+    setState((s) => ({
+      ...s,
+      run: "paused",
+      focusAccumMs: s.focusAccumMs + (inFocus && s.startTs ? Math.max(0, ts - s.startTs) : 0),
+      startTs: null,
+      phaseRemainingMs: s.mode === "pomodoro" && s.phaseEndTs ? Math.max(0, s.phaseEndTs - ts) : null,
+      phaseEndTs: null,
+    }));
+  };
+
+  const onResume = () => {
+    const ts = Date.now();
+    setNow(ts);
+    setState((s) => ({
+      ...s,
+      run: "running",
+      startTs: ts,
+      phaseEndTs: s.mode === "pomodoro" ? ts + (s.phaseRemainingMs ?? focusMin * 60_000) : null,
+      phaseRemainingMs: null,
+    }));
   };
 
   const onEnd = () => {
-    if (tick.current) window.clearInterval(tick.current);
-    setRun("idle");
+    const ts = Date.now();
+    const total =
+      state.focusAccumMs + (state.run === "running" && inFocus && state.startTs ? Math.max(0, ts - state.startTs) : 0);
+    setFinalMs(total);
+    setState((s) => ({ ...s, run: "idle", startTs: null, focusAccumMs: total, phaseEndTs: null, phaseRemainingMs: 0 }));
     setShowModal(true);
   };
 
   const reset = () => {
     setShowModal(false);
-    setSeconds(0);
-    setPhaseLeft(0);
-    setPhase("focus");
-    setRound(1);
+    setFinalMs(0);
+    setState((s) => ({ ...IDLE, mode: s.mode }));
     setFocusScore(0);
     setCompScore(0);
     setFatigueScore(0);
     setTopic("");
     setNotes("");
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* noop */
+    }
   };
 
   const onSave = async () => {
@@ -214,7 +358,7 @@ function TimerPage() {
       subject_id: parsed.subjectId,
       schedule_block_id: parsed.blockId,
       block_type: blockType,
-      duration_minutes: Math.max(1, Math.round(seconds / 60)),
+      duration_minutes: Math.max(1, Math.round(finalMs / 60_000)),
       date: todayISO(),
       notes: notes.trim() || null,
       topic: topic.trim() || null,
@@ -253,7 +397,7 @@ function TimerPage() {
   };
 
   const todayTotal = log.reduce((a, r) => a + r.duration_minutes, 0);
-  const display = mode === "stopwatch" ? fmtClock(seconds) : fmtClock(phaseLeft);
+  const display = mode === "stopwatch" ? fmtClock(seconds) : fmtClock(Math.round(remainingMs / 1000));
   const phaseLabel =
     phase === "focus"
       ? `☕ ${tr(t.pomodoro.focus, lang)}`
@@ -376,7 +520,7 @@ function TimerPage() {
           {run === "running" && (
             <div className="flex items-center gap-4">
               <button
-                onClick={() => setRun("paused")}
+                onClick={onPause}
                 className="h-14 w-32 rounded-lg border-2 border-teal text-cta text-teal hover:bg-teal/5"
               >
                 {tr(t.timer.pause, lang)}
@@ -389,7 +533,7 @@ function TimerPage() {
           {run === "paused" && (
             <div className="flex items-center gap-4">
               <button
-                onClick={() => setRun("running")}
+                onClick={onResume}
                 className="h-14 w-32 rounded-lg bg-teal text-cta text-white hover:opacity-90"
               >
                 {tr(t.timer.resume, lang)}
@@ -439,9 +583,11 @@ function TimerPage() {
           <DialogHeader>
             <DialogTitle>{tr(t.session.done, lang)}</DialogTitle>
           </DialogHeader>
-          <div className="text-4xl font-extrabold tabular-nums text-near-black">{fmtClock(seconds)}</div>
+          <div className="text-4xl font-extrabold tabular-nums text-near-black">
+            {fmtClock(Math.floor(finalMs / 1000))}
+          </div>
           <div className="text-sm text-mid-grey">
-            {tr(t.schedule[parsed.blockType], lang)}
+            {tr(t.schedule[blockType], lang)}
             {subject ? ` — ${subjName(subject)}` : ""}
           </div>
 
