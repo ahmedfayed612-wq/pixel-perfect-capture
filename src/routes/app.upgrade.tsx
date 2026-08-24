@@ -91,11 +91,14 @@ function UpgradePage() {
             ))}
           </ul>
           <button
-            onClick={onUpgrade}
-            className="mt-8 inline-flex h-[52px] items-center justify-center rounded-lg bg-white text-cta text-teal hover:bg-off-white"
+            onClick={() => onUpgrade("monthly")}
+            disabled={busy !== null}
+            className="mt-8 inline-flex h-[52px] items-center justify-center gap-2 rounded-lg bg-white text-cta text-teal hover:bg-off-white disabled:opacity-60"
           >
+            {busy === "monthly" && <Loader2 className="h-4 w-4 animate-spin" />}
             {tr(t.pricing.pro.cta, lang)}
           </button>
+
         </div>
         <div className="surface-card relative flex flex-col border-2 border-gold p-6">
           <div className="absolute -top-3 start-6 rounded-full bg-gold px-3 py-1 text-[11px] font-bold tracking-wider text-teal-dark">
