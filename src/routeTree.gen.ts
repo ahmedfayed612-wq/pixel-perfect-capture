@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RefundRouteImport } from './routes/refund'
+import { Route as PaymentCallbackRouteImport } from './routes/payment-callback'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
@@ -43,6 +44,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const RefundRoute = RefundRouteImport.update({
   id: '/refund',
   path: '/refund',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentCallbackRoute = PaymentCallbackRouteImport.update({
+  id: '/payment-callback',
+  path: '/payment-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/payment-callback': typeof PaymentCallbackRoute
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/payment-callback': typeof PaymentCallbackRoute
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
@@ -181,6 +189,7 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/payment-callback': typeof PaymentCallbackRoute
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
@@ -205,6 +214,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/onboarding'
+    | '/payment-callback'
     | '/refund'
     | '/reset-password'
     | '/signup'
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/onboarding'
+    | '/payment-callback'
     | '/refund'
     | '/reset-password'
     | '/signup'
@@ -248,6 +259,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/onboarding'
+    | '/payment-callback'
     | '/refund'
     | '/reset-password'
     | '/signup'
@@ -271,6 +283,7 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
+  PaymentCallbackRoute: typeof PaymentCallbackRoute
   RefundRoute: typeof RefundRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
@@ -298,6 +311,13 @@ declare module '@tanstack/react-router' {
       path: '/refund'
       fullPath: '/refund'
       preLoaderRoute: typeof RefundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment-callback': {
+      id: '/payment-callback'
+      path: '/payment-callback'
+      fullPath: '/payment-callback'
+      preLoaderRoute: typeof PaymentCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -458,6 +478,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
+  PaymentCallbackRoute: PaymentCallbackRoute,
   RefundRoute: RefundRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
