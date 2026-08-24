@@ -1,23 +1,49 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/auth/AuthProvider";
 import { useLang } from "@/i18n/LangProvider";
 import { tr, t } from "@/i18n/strings";
 import { toast } from "sonner";
+import { createKashierOrder, type KashierPlan } from "@/lib/kashier.functions";
+
+const KASHIER_BASE = "https://test-iframe.kashier.io/payment"; // swap to iframe.kashier.io for live keys
 
 export const Route = createFileRoute("/app/upgrade")({ component: UpgradePage });
 
 function UpgradePage() {
   const { profile } = useAuth();
   const { lang } = useLang();
+  const startOrder = useServerFn(createKashierOrder);
+  const [busy, setBusy] = useState<KashierPlan | null>(null);
 
-  const onUpgrade = () => {
-    toast.info(
-      lang === "ar"
-        ? "الدفع هييجي قريب — هنفعل فوري وفودافون كاش والكروت."
-        : "Payments coming soon — Fawry, Vodafone Cash & cards will be enabled."
-    );
+  const onUpgrade = async (plan: KashierPlan) => {
+    if (busy) return;
+    setBusy(plan);
+    try {
+      const order = await startOrder({ data: { plan } });
+      const confirmed = window.confirm(
+        lang === "ar"
+          ? `هتدفع ${order.amount} ج.م دلوقتي. نكمل للدفع؟`
+          : `You'll be charged ${order.amount} EGP now. Continue to payment?`
+      );
+      if (!confirmed) {
+        setBusy(null);
+        return;
+      }
+      const redirect = encodeURIComponent(`${window.location.origin}/payment-callback`);
+      window.location.href =
+        `${KASHIER_BASE}?mid=${encodeURIComponent(order.mid)}` +
+        `&orderId=${encodeURIComponent(order.orderId)}` +
+        `&amount=${order.amount}&currency=${order.currency}` +
+        `&hash=${order.hash}&merchantRedirect=${redirect}`;
+    } catch {
+      setBusy(null);
+      toast.error(lang === "ar" ? "معرفناش نبدأ الدفع، جرب تاني." : "Couldn't start the payment, please try again.");
+    }
   };
+
 
   return (
     <div className="px-5 py-6 md:px-10 md:py-10">
@@ -65,11 +91,14 @@ function UpgradePage() {
             ))}
           </ul>
           <button
-            onClick={onUpgrade}
-            className="mt-8 inline-flex h-[52px] items-center justify-center rounded-lg bg-white text-cta text-teal hover:bg-off-white"
+            onClick={() => onUpgrade("monthly")}
+            disabled={busy !== null}
+            className="mt-8 inline-flex h-[52px] items-center justify-center gap-2 rounded-lg bg-white text-cta text-teal hover:bg-off-white disabled:opacity-60"
           >
+            {busy === "monthly" && <Loader2 className="h-4 w-4 animate-spin" />}
             {tr(t.pricing.pro.cta, lang)}
           </button>
+
         </div>
         <div className="surface-card relative flex flex-col border-2 border-gold p-6">
           <div className="absolute -top-3 start-6 rounded-full bg-gold px-3 py-1 text-[11px] font-bold tracking-wider text-teal-dark">
@@ -87,11 +116,14 @@ function UpgradePage() {
             ))}
           </ul>
           <button
-            onClick={onUpgrade}
-            className="mt-8 inline-flex h-[52px] items-center justify-center rounded-lg bg-teal text-cta text-white hover:opacity-90"
+            onClick={() => onUpgrade("nine_month")}
+            disabled={busy !== null}
+            className="mt-8 inline-flex h-[52px] items-center justify-center gap-2 rounded-lg bg-teal text-cta text-white hover:opacity-90 disabled:opacity-60"
           >
+            {busy === "nine_month" && <Loader2 className="h-4 w-4 animate-spin" />}
             {tr(t.pricing.nine.cta, lang)}
           </button>
+
         </div>
       </div>
 
