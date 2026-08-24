@@ -28,6 +28,7 @@ import { Route as AppReadinessRouteImport } from './routes/app.readiness'
 import { Route as AppLogRouteImport } from './routes/app.log'
 import { Route as AppInviteRouteImport } from './routes/app.invite'
 import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
+import { Route as ApiPublicKashierWebhookRouteImport } from './routes/api/public/kashier-webhook'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -124,6 +125,11 @@ const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiPublicKashierWebhookRoute = ApiPublicKashierWebhookRouteImport.update({
+  id: '/api/public/kashier-webhook',
+  path: '/api/public/kashier-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/app/timer': typeof AppTimerRoute
   '/app/upgrade': typeof AppUpgradeRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/kashier-webhook': typeof ApiPublicKashierWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/app/timer': typeof AppTimerRoute
   '/app/upgrade': typeof AppUpgradeRoute
   '/app': typeof AppIndexRoute
+  '/api/public/kashier-webhook': typeof ApiPublicKashierWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/app/timer': typeof AppTimerRoute
   '/app/upgrade': typeof AppUpgradeRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/kashier-webhook': typeof ApiPublicKashierWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/app/timer'
     | '/app/upgrade'
     | '/app/'
+    | '/api/public/kashier-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/app/timer'
     | '/app/upgrade'
     | '/app'
+    | '/api/public/kashier-webhook'
   id:
     | '__root__'
     | '/'
@@ -251,6 +262,7 @@ export interface FileRouteTypes {
     | '/app/timer'
     | '/app/upgrade'
     | '/app/'
+    | '/api/public/kashier-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -262,6 +274,7 @@ export interface RootRouteChildren {
   RefundRoute: typeof RefundRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  ApiPublicKashierWebhookRoute: typeof ApiPublicKashierWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -399,6 +412,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAnalyticsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/api/public/kashier-webhook': {
+      id: '/api/public/kashier-webhook'
+      path: '/api/public/kashier-webhook'
+      fullPath: '/api/public/kashier-webhook'
+      preLoaderRoute: typeof ApiPublicKashierWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -441,6 +461,7 @@ const rootRouteChildren: RootRouteChildren = {
   RefundRoute: RefundRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  ApiPublicKashierWebhookRoute: ApiPublicKashierWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
