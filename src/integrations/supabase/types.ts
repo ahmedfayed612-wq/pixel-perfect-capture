@@ -366,6 +366,39 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          expiry_date: string | null
+          id: string
+          kashier_order_id: string | null
+          plan: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid?: number
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          kashier_order_id?: string | null
+          plan: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          kashier_order_id?: string | null
+          plan?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       weekly_challenges: {
         Row: {
           completed: boolean
