@@ -115,9 +115,10 @@ export const t = {
     label: { en: "SIMPLE PRICING", ar: "أسعار بسيطة" },
     h2: { en: "One price. No tricks.", ar: "سعر واحد. مفيش خدع." },
     launch: {
-      en: "🎉 First month: 30 EGP — and 15 EGP of it is donated to Resala Charity.",
-      ar: "🎉 أول شهر: 30 جنيه — وبنتبرع بـ 15 جنيه منهم لجمعية رسالة.",
+      en: "🎉 Launch offer: 45 EGP for your first 2 months instead of 60.",
+      ar: "🎉 عرض الإطلاق: 45 جنيه لأول شهرين بدل 60.",
     },
+
     free: {
       title: { en: "Free", ar: "مجاني" },
       price: { en: "0 EGP / month", ar: "0 جنيه / شهر" },
