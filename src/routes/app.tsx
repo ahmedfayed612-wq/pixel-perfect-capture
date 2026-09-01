@@ -28,8 +28,10 @@ function AppLayout() {
   const { lang } = useLang();
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login" });
-  }, [loading, user, navigate]);
+    if (!loading && !user) {
+      navigate({ to: "/login", search: { redirect: loc.pathname } });
+    }
+  }, [loading, user, navigate, loc.pathname]);
 
   useEffect(() => {
     if (profile && !profile.onboarding_complete) navigate({ to: "/onboarding" });
