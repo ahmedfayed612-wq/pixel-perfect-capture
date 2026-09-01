@@ -137,7 +137,10 @@ export const t = {
       title: { en: "Pro", ar: "برو" },
       original: { en: "60 EGP", ar: "60 ج.م" },
       price: { en: "45 EGP / month", ar: "45 ج.م / شهر" },
-      sub: { en: "First month 30 EGP — 15 EGP donated to Resala", ar: "أول شهر 30 جنيه — بنتبرع بـ 15 منهم لرسالة" },
+      sub: {
+        en: "45 EGP for your first 2 months, then 60 EGP/month",
+        ar: "45 ج.م لأول شهرين، وبعدها 60 ج.م في الشهر",
+      },
       features: [
         { en: "Everything in Free", ar: "كل اللي في المجاني" },
         { en: "Unlimited subjects", ar: "مواد بلا حدود" },
@@ -152,8 +155,9 @@ export const t = {
     nine: {
       badge: { en: "SAVE 3 MONTHS", ar: "وفر 3 شهور" },
       title: { en: "9 months for the price of 6", ar: "9 شهور بسعر 6" },
-      price: { en: "270 EGP / 9 months", ar: "270 ج.م / 9 شهور" },
-      sub: { en: "30 EGP per month — billed once", ar: "يعني 30 ج.م في الشهر — دفعة واحدة" },
+      price: { en: "360 EGP / 9 months", ar: "360 ج.م / 9 شهور" },
+      sub: { en: "40 EGP per month — billed once", ar: "يعني 40 ج.م في الشهر — دفعة واحدة" },
+
       features: [
         { en: "Everything in Pro", ar: "كل مميزات برو" },
         { en: "9 full months of access", ar: "9 شهور كاملة" },
