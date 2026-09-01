@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UpgradeRouteImport } from './routes/upgrade'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RefundRouteImport } from './routes/refund'
@@ -31,6 +32,11 @@ import { Route as AppInviteRouteImport } from './routes/app.invite'
 import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
 import { Route as ApiPublicKashierWebhookRouteImport } from './routes/api/public/kashier-webhook'
 
+const UpgradeRoute = UpgradeRouteImport.update({
+  id: '/upgrade',
+  path: '/upgrade',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/upgrade': typeof UpgradeRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/invite': typeof AppInviteRoute
   '/app/log': typeof AppLogRoute
@@ -169,6 +176,7 @@ export interface FileRoutesByTo {
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/upgrade': typeof UpgradeRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/invite': typeof AppInviteRoute
   '/app/log': typeof AppLogRoute
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/upgrade': typeof UpgradeRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/invite': typeof AppInviteRoute
   '/app/log': typeof AppLogRoute
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/refund'
     | '/reset-password'
     | '/signup'
+    | '/upgrade'
     | '/app/analytics'
     | '/app/invite'
     | '/app/log'
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/refund'
     | '/reset-password'
     | '/signup'
+    | '/upgrade'
     | '/app/analytics'
     | '/app/invite'
     | '/app/log'
@@ -263,6 +274,7 @@ export interface FileRouteTypes {
     | '/refund'
     | '/reset-password'
     | '/signup'
+    | '/upgrade'
     | '/app/analytics'
     | '/app/invite'
     | '/app/log'
@@ -287,11 +299,19 @@ export interface RootRouteChildren {
   RefundRoute: typeof RefundRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  UpgradeRoute: typeof UpgradeRoute
   ApiPublicKashierWebhookRoute: typeof ApiPublicKashierWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/upgrade': {
+      id: '/upgrade'
+      path: '/upgrade'
+      fullPath: '/upgrade'
+      preLoaderRoute: typeof UpgradeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -482,6 +502,7 @@ const rootRouteChildren: RootRouteChildren = {
   RefundRoute: RefundRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  UpgradeRoute: UpgradeRoute,
   ApiPublicKashierWebhookRoute: ApiPublicKashierWebhookRoute,
 }
 export const routeTree = rootRouteImport

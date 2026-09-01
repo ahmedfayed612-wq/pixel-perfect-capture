@@ -6,11 +6,17 @@ import { useLang } from "@/i18n/LangProvider";
 import { tr, t } from "@/i18n/strings";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/login")({ component: LoginPage });
+export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+  }),
+  component: LoginPage,
+});
 
 function LoginPage() {
   const { lang } = useLang();
   const navigate = useNavigate();
+  const { redirect: redirectTo } = Route.useSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,7 +30,7 @@ function LoginPage() {
       toast.error(error.message || tr(t.auth.genericError, lang));
       return;
     }
-    navigate({ to: "/app" });
+    navigate({ to: (redirectTo && redirectTo.startsWith("/") ? redirectTo : "/app") as string });
   };
 
   return (
