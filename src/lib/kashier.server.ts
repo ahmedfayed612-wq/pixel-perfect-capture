@@ -19,14 +19,15 @@ async function hmacSha256Hex(secret: string, message: string): Promise<string> {
 export function kashierEnv() {
   const apiKey = process.env["KASHIER_API_KEY"];
   const mid = process.env["KASHIER_MID"];
-  if (!apiKey || !mid) throw new Error("Kashier is not configured");
-  return { apiKey, mid };
+  const secretKey = process.env["KASHIER_SECRET_KEY"];
+  if (!apiKey || !mid || !secretKey) throw new Error("Kashier is not configured");
+  return { apiKey, mid, secretKey };
 }
 
-/** Hash used to build the hosted-payment redirect URL. */
-export async function buildOrderHash(mid: string, orderId: string, amount: string, currency: string, apiKey: string) {
+/** Hash used to build the hosted-payment redirect URL (signed with the Secret Key). */
+export async function buildOrderHash(mid: string, orderId: string, amount: string, currency: string, secretKey: string) {
   const path = `/?payment=${mid}.${orderId}.${amount}.${currency}`;
-  return hmacSha256Hex(apiKey, path);
+  return hmacSha256Hex(secretKey, path);
 }
 
 /**

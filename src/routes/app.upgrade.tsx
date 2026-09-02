@@ -8,7 +8,7 @@ import { tr, t } from "@/i18n/strings";
 import { toast } from "sonner";
 import { createKashierOrder, type KashierPlan } from "@/lib/kashier.functions";
 
-const KASHIER_BASE = "https://test-iframe.kashier.io/payment"; // swap to iframe.kashier.io for live keys
+const KASHIER_BASE = "https://iframe.kashier.io/payment";
 
 export const Route = createFileRoute("/app/upgrade")({ component: UpgradePage });
 
