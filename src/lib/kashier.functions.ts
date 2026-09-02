@@ -12,7 +12,7 @@ export const createKashierOrder = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { kashierEnv, buildOrderHash } = await import("./kashier.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { apiKey, mid, secretKey } = kashierEnv();
+    const { mid, secretKey } = kashierEnv();
 
     let amount = 360;
     if (data.plan === "monthly") {
