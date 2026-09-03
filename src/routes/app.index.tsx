@@ -23,7 +23,7 @@ type ScheduleBlock = {
 };
 
 function Dashboard() {
-  const { profile } = useAuth();
+  const { profile, isPro } = useAuth();
   const { lang } = useLang();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [todayMinutes, setTodayMinutes] = useState(0);
@@ -104,7 +104,7 @@ function Dashboard() {
   const maxDay = Math.max(0, ...last7.map((d) => d.minutes));
 
   const ordered = [...subjects].sort((a, b) => (lastSession[b.id] ?? "").localeCompare(lastSession[a.id] ?? ""));
-  const visibleSubjects = profile?.is_pro ? ordered : ordered.slice(0, 3);
+  const visibleSubjects = isPro ? ordered : ordered.slice(0, 3);
   const name = (s: Subject) => (lang === "ar" && s.name_ar ? s.name_ar : s.name);
 
   return (
@@ -224,13 +224,13 @@ function Dashboard() {
         <div className="surface-card p-5">
           <div className="flex items-center justify-between">
             <div className="text-label">{tr(t.dashboard.todaySchedule, lang)}</div>
-            {profile?.is_pro && (
+            {isPro && (
               <Link to="/app/schedule" className="text-xs font-semibold text-teal hover:underline">
                 {tr(t.nav.schedule, lang)} →
               </Link>
             )}
           </div>
-          {!profile?.is_pro ? (
+          {!isPro ? (
             <div className="mt-3 flex items-center gap-2 text-sm text-mid-grey">
               <Lock className="h-4 w-4 text-teal" /> {tr(t.dashboard.noScheduleFree, lang)}
             </div>
@@ -307,7 +307,7 @@ function Dashboard() {
             { to: "/app/settings", icon: Settings, label: t.nav.settings, pro: false },
           ].map((item) => {
             const Icon = item.icon;
-            const locked = item.pro && !profile?.is_pro;
+            const locked = item.pro && !isPro;
             return (
               <Link
                 key={item.to}

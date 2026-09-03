@@ -24,7 +24,7 @@ function avg(nums: number[]) {
 }
 
 function ReadinessPage() {
-  const { profile } = useAuth();
+  const { profile, isPro } = useAuth();
   const { lang } = useLang();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [rows, setRows] = useState<Row[]>([]);
@@ -125,7 +125,7 @@ function ReadinessPage() {
       <h1 className="text-2xl font-bold text-near-black md:text-3xl">{tr(t.readiness.title, lang)}</h1>
       <p className="mt-1 text-sm text-mid-grey">{tr(t.readiness.sub, lang)}</p>
       <div className="mt-6">
-        {profile?.is_pro ? Content : <ProLockOverlay message={tr(t.readiness.prompt, lang)}>{Content}</ProLockOverlay>}
+        {isPro ? Content : <ProLockOverlay message={tr(t.readiness.prompt, lang)}>{Content}</ProLockOverlay>}
       </div>
     </div>
   );

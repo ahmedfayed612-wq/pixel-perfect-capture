@@ -16,7 +16,7 @@ type Draft = { name: string; color: string; weekly_goal_hours: number };
 
 function Onboarding() {
   const { lang } = useLang();
-  const { user, profile, refresh, loading } = useAuth();
+  const { user, profile, refresh, loading, isPro } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
 
@@ -38,7 +38,7 @@ function Onboarding() {
 
   const level = profile?.student_type === "university" ? "university" : "highschool";
   const suggestions = SUBJECT_SUGGESTIONS[level].filter((s) => !subjects.some((x) => x.name === s));
-  const capped = subjects.length >= 3 && !profile?.is_pro;
+  const capped = subjects.length >= 3 && !isPro;
 
   const addSubject = (name: string) => {
     const clean = name.trim();
