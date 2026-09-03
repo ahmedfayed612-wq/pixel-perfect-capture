@@ -94,3 +94,171 @@ export async function finalizePayment(orderId: string, paymentStatus: string): P
 
   return { ok: true, status: "active" };
 }
+
+/* ------------------------------------------------------------------ *
+ * Hosted payment pages (checkouts.kashier.io) -> Pro subscription
+ * ------------------------------------------------------------------ */
+
+export const PLAN_PERIODS = { monthly: 30, nine_month: 270 } as const;
+export type HostedPlan = keyof typeof PLAN_PERIODS;
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Flattens a nested webhook payload into `key -> string value` pairs (last key wins). */
+export function flattenPayload(input: unknown, out: Record<string, string> = {}, depth = 0): Record<string, string> {
+  if (!input || typeof input !== "object" || depth > 5) return out;
+  for (const [k, v] of Object.entries(input as Record<string, unknown>)) {
+    if (v === null || v === undefined) continue;
+    if (Array.isArray(v)) {
+      // Kashier custom fields usually arrive as [{ label/name/key, value }, ...]
+      for (const item of v) {
+        if (item && typeof item === "object") {
+          const rec = item as Record<string, unknown>;
+          const label = rec["label"] ?? rec["name"] ?? rec["key"] ?? rec["fieldName"];
+          const value = rec["value"] ?? rec["fieldValue"];
+          if (label !== undefined && value !== undefined) out[String(label)] = String(value);
+          else flattenPayload(item, out, depth + 1);
+        }
+      }
+    } else if (typeof v === "object") {
+      flattenPayload(v, out, depth + 1);
+    } else {
+      out[k] = String(v);
+    }
+  }
+  return out;
+}
+
+const norm = (s: string | undefined | null) => (s ?? "").trim().toLowerCase();
+
+/** Custom field: "Email you used to sign up for Waqti" (or any signup/account-email labelled field). */
+export function extractSignupEmail(flat: Record<string, string>): string | null {
+  const entries = Object.entries(flat);
+  const labelled = entries.find(([k, v]) => /sign\s*-?up|signup|waqti|account/i.test(k) && EMAIL_RE.test(v.trim()));
+  if (labelled) return norm(labelled[1]);
+  const custom = entries.find(([k, v]) => /custom|extra|meta/i.test(k) && EMAIL_RE.test(v.trim()));
+  return custom ? norm(custom[1]) : null;
+}
+
+export function extractCheckoutEmail(flat: Record<string, string>): string | null {
+  for (const key of ["email", "customerEmail", "billingEmail", "payerEmail", "customer_email"]) {
+    const v = flat[key];
+    if (v && EMAIL_RE.test(v.trim())) return norm(v);
+  }
+  const any = Object.entries(flat).find(([k, v]) => /email/i.test(k) && EMAIL_RE.test(v.trim()));
+  return any ? norm(any[1]) : null;
+}
+
+export function extractPhone(flat: Record<string, string>): string | null {
+  for (const [k, v] of Object.entries(flat)) {
+    if (/phone|mobile|msisdn/i.test(k) && /\d{7,}/.test(v)) return v.trim();
+  }
+  return null;
+}
+
+/** 45 EGP -> monthly, 360 EGP -> nine_month, with rounding tolerance. */
+export function planFromAmount(amount: number): HostedPlan | null {
+  if (!Number.isFinite(amount)) return null;
+  if (Math.abs(amount - 45) <= 1.5) return "monthly";
+  if (Math.abs(amount - 360) <= 5) return "nine_month";
+  return null;
+}
+
+export function isSuccessStatus(status: string): boolean {
+  return ["success", "successful", "paid", "captured", "approved"].includes(norm(status));
+}
+
+export type HostedResult =
+  | { ok: true; outcome: "granted" | "duplicate"; userId?: string; plan?: HostedPlan }
+  | { ok: false; outcome: "not_success" | "unrecognized_amount" | "unmatched" | "invalid" };
+
+export async function processHostedPayment(rawPayload: unknown): Promise<HostedResult> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const flat = flattenPayload(rawPayload);
+
+  const status = flat["status"] ?? flat["paymentStatus"] ?? flat["transactionStatus"] ?? "";
+  const transactionId =
+    flat["transactionId"] ?? flat["merchantOrderId"] ?? flat["orderId"] ?? flat["kashierOrderId"] ?? flat["id"] ?? "";
+  const amount = Number(flat["amount"] ?? flat["totalAmount"] ?? flat["orderAmount"] ?? NaN);
+  const currency = (flat["currency"] ?? "EGP").toUpperCase();
+
+  if (!transactionId) return { ok: false, outcome: "invalid" };
+  if (!isSuccessStatus(status)) return { ok: false, outcome: "not_success" };
+
+  const signupEmail = extractSignupEmail(flat);
+  const checkoutEmail = extractCheckoutEmail(flat);
+  const phone = extractPhone(flat);
+
+  const plan = planFromAmount(amount);
+  if (!plan) {
+    await supabaseAdmin.from("payments").upsert(
+      {
+        transaction_id: transactionId,
+        amount: Number.isFinite(amount) ? amount : 0,
+        currency,
+        status: "unrecognized_amount",
+        signup_email: signupEmail,
+        checkout_email: checkoutEmail,
+        checkout_phone: phone,
+        raw: rawPayload as never,
+      },
+      { onConflict: "transaction_id", ignoreDuplicates: true },
+    );
+    return { ok: false, outcome: "unrecognized_amount" };
+  }
+
+  // Idempotency: this transaction was already processed.
+  const { data: existing } = await supabaseAdmin
+    .from("payments")
+    .select("id, status, user_id")
+    .eq("transaction_id", transactionId)
+    .maybeSingle();
+  if (existing && existing.status === "matched") {
+    return { ok: true, outcome: "duplicate", plan };
+  }
+
+  const { data: userId } = await supabaseAdmin.rpc("find_user_for_payment", {
+    _signup_email: signupEmail,
+    _checkout_email: checkoutEmail,
+    _phone: phone,
+  });
+
+  if (!userId) {
+    await supabaseAdmin.from("payments").upsert(
+      {
+        transaction_id: transactionId,
+        amount,
+        currency,
+        plan,
+        status: "unmatched",
+        signup_email: signupEmail,
+        checkout_email: checkoutEmail,
+        checkout_phone: phone,
+        raw: rawPayload as never,
+      },
+      { onConflict: "transaction_id" },
+    );
+    return { ok: false, outcome: "unmatched" };
+  }
+
+  await supabaseAdmin.rpc("grant_pro", { _user_id: userId as string, _days: PLAN_PERIODS[plan] });
+
+  await supabaseAdmin.from("payments").upsert(
+    {
+      transaction_id: transactionId,
+      user_id: userId as string,
+      amount,
+      currency,
+      plan,
+      status: "matched",
+      signup_email: signupEmail,
+      checkout_email: checkoutEmail,
+      checkout_phone: phone,
+      raw: rawPayload as never,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "transaction_id" },
+  );
+
+  return { ok: true, outcome: "granted", userId: userId as string, plan };
+}
