@@ -9,7 +9,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/app/settings")({ component: SettingsPage });
 
 function SettingsPage() {
-  const { profile, refresh, signOut } = useAuth();
+  const { profile, refresh, signOut, isPro } = useAuth();
   const { lang, setLang } = useLang();
   const navigate = useNavigate();
   const [name, setName] = useState(profile?.name ?? "");
@@ -113,15 +113,15 @@ function SettingsPage() {
         <div className="flex items-center justify-between rounded-lg border border-light-grey bg-white p-4">
           <div>
             <div className="text-sm font-semibold text-near-black">
-              {profile?.is_pro ? "Pro" : tr(t.pricing.free.title, lang)}
+              {isPro ? "Pro" : tr(t.pricing.free.title, lang)}
             </div>
             <div className="text-xs text-mid-grey">
-              {profile?.is_pro && profile.subscription_end
+              {isPro && profile.subscription_end
                 ? `${lang === "ar" ? "بيتجدد" : "Renews"}: ${profile.subscription_end}`
                 : tr(t.subjects.upgradePrompt, lang)}
             </div>
           </div>
-          {!profile?.is_pro && (
+          {!isPro && (
             <button
               onClick={() => navigate({ to: "/app/upgrade" })}
               className="inline-flex h-10 items-center rounded-lg bg-teal px-4 text-cta text-white"

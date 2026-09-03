@@ -71,9 +71,8 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 }
 
 function AnalyticsPage() {
-  const { user, profile } = useAuth();
+  const { user, profile, isPro } = useAuth();
   const { lang } = useLang();
-  const isPro = !!profile?.is_pro;
   const ar = lang === "ar";
 
   const [subjects, setSubjects] = useState<Subject[]>([]);

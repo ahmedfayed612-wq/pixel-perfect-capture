@@ -13,7 +13,7 @@ const KASHIER_BASE = "https://iframe.kashier.io/payment";
 export const Route = createFileRoute("/app/upgrade")({ component: UpgradePage });
 
 function UpgradePage() {
-  const { profile } = useAuth();
+  const { profile, isPro } = useAuth();
   const { lang } = useLang();
   const startOrder = useServerFn(createKashierOrder);
   const [busy, setBusy] = useState<KashierPlan | null>(null);
@@ -69,7 +69,7 @@ function UpgradePage() {
             ))}
           </ul>
           <div className="mt-8 inline-flex h-[52px] items-center justify-center rounded-lg border border-light-grey text-cta text-mid-grey">
-            {profile && !profile.is_pro ? (lang === "ar" ? "باقتك الحالية" : "Your current plan") : "—"}
+            {profile && !isPro ? (lang === "ar" ? "باقتك الحالية" : "Your current plan") : "—"}
           </div>
         </div>
         <div className="relative flex flex-col rounded-lg bg-teal p-6 text-white">

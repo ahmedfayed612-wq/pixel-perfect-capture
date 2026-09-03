@@ -22,7 +22,7 @@ const navItems = [
 ] as const;
 
 function AppLayout() {
-  const { user, profile, loading, signOut } = useAuth();
+  const { user, profile, loading, signOut, isPro } = useAuth();
   const navigate = useNavigate();
   const loc = useLocation();
   const { lang } = useLang();
@@ -57,7 +57,7 @@ function AppLayout() {
             const active =
               "exact" in item && item.exact ? loc.pathname === item.to : loc.pathname.startsWith(item.to);
             const Icon = item.icon;
-            const locked = item.pro && !profile?.is_pro;
+            const locked = item.pro && !isPro;
             return (
               <Link
                 key={item.to}
@@ -78,10 +78,10 @@ function AppLayout() {
           <div className="px-3">
             <span
               className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                profile?.is_pro ? "bg-gold text-teal-dark" : "bg-white/10 text-white/80"
+                isPro ? "bg-gold text-teal-dark" : "bg-white/10 text-white/80"
               }`}
             >
-              {profile?.is_pro ? "PRO" : "FREE"}
+              {isPro ? "PRO" : "FREE"}
             </span>
           </div>
           <Link

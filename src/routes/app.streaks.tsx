@@ -13,7 +13,7 @@ export const Route = createFileRoute("/app/streaks")({ component: StreaksPage })
 type Streak = { current_streak: number; longest_streak: number; last_study_date: string | null };
 
 function StreaksPage() {
-  const { profile } = useAuth();
+  const { profile, isPro } = useAuth();
   const { lang } = useLang();
   const [streak, setStreak] = useState<Streak | null>(null);
   const [totalDays, setTotalDays] = useState(0);
@@ -179,7 +179,7 @@ function StreaksPage() {
       {/* Heatmap */}
       <div className="mt-8">
         <h2 className="mb-4 text-lg font-semibold text-near-black">{tr(t.streaks.last3, lang)}</h2>
-        {profile?.is_pro ? (
+        {isPro ? (
           <Heatmap data={heatmap} />
         ) : (
           <ProLockOverlay message={tr(t.pro.heatmapPrompt, lang)}>

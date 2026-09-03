@@ -47,7 +47,7 @@ const KIND_META: Record<Kind, { icon: typeof BookOpen; bg: string; ring: string;
 };
 
 function SchedulePage() {
-  const { user, profile } = useAuth();
+  const { user, profile, isPro } = useAuth();
   const { lang } = useLang();
 
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -168,7 +168,7 @@ function SchedulePage() {
             {lang === "ar" ? "محاضرات، مذاكرة، وواجبات." : "Lectures, study, and homework."}
           </p>
         </div>
-        {profile?.is_pro && (
+        {isPro && (
           <button
             onClick={() => openNew()}
             className="inline-flex h-11 items-center gap-2 rounded-lg bg-teal px-4 text-cta text-white hover:opacity-90"
@@ -183,7 +183,7 @@ function SchedulePage() {
           <div className="surface-card flex h-40 items-center justify-center">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-teal/30 border-t-teal" />
           </div>
-        ) : profile?.is_pro ? (
+        ) : isPro ? (
           Grid
         ) : (
           <ProLockOverlay message={tr(t.pro.schedulePrompt, lang)}>{Grid}</ProLockOverlay>

@@ -20,7 +20,7 @@ type Subject = {
 };
 
 function SubjectsPage() {
-  const { user, profile } = useAuth();
+  const { user, profile, isPro } = useAuth();
   const { lang } = useLang();
   const [list, setList] = useState<Subject[]>([]);
   const [editing, setEditing] = useState<Subject | null>(null);
@@ -40,7 +40,7 @@ function SubjectsPage() {
   }, []);
 
   const onAdd = () => {
-    if (!profile?.is_pro && list.length >= 3) {
+    if (!isPro && list.length >= 3) {
       setShowCap(true);
       return;
     }
@@ -82,7 +82,7 @@ function SubjectsPage() {
           </div>
         )}
         {list.map((s, i) => {
-          const locked = !profile?.is_pro && i >= 3;
+          const locked = !isPro && i >= 3;
           return (
             <div
               key={s.id}

@@ -11,6 +11,7 @@ type Profile = {
   is_pro: boolean;
   subscription_start: string | null;
   subscription_end: string | null;
+  pro_expires_at: string | null;
   referral_code: string | null;
   referral_credits_egp: number;
   referred_by_user_id: string | null;
@@ -31,6 +32,8 @@ type Profile = {
 
 type Ctx = {
   user: User | null;
+  /** Single source of truth for Pro access: plan === "pro" AND pro_expires_at in the future. */
+  isPro: boolean;
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
@@ -81,8 +84,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  const isPro =
+    !!profile &&
+    profile.plan === "pro" &&
+    !!profile.pro_expires_at &&
+    new Date(profile.pro_expires_at).getTime() > Date.now();
+
   const value: Ctx = {
     user,
+    isPro,
     session,
     profile,
     loading,
