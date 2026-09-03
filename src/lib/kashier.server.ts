@@ -218,9 +218,9 @@ export async function processHostedPayment(rawPayload: unknown): Promise<HostedR
   }
 
   const { data: userId } = await supabaseAdmin.rpc("find_user_for_payment", {
-    _signup_email: signupEmail,
-    _checkout_email: checkoutEmail,
-    _phone: phone,
+    _signup_email: signupEmail ?? "",
+    _checkout_email: checkoutEmail ?? "",
+    _phone: phone ?? "",
   });
 
   if (!userId) {
