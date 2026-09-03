@@ -38,6 +38,90 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          dedupe_key: string | null
+          id: string
+          kind: string
+          link: string | null
+          read_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          kind: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          kind?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          checkout_email: string | null
+          checkout_phone: string | null
+          created_at: string
+          currency: string
+          id: string
+          plan: string | null
+          raw: Json | null
+          signup_email: string | null
+          status: string
+          transaction_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          checkout_email?: string | null
+          checkout_phone?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          plan?: string | null
+          raw?: Json | null
+          signup_email?: string | null
+          status?: string
+          transaction_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          checkout_email?: string | null
+          checkout_phone?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          plan?: string | null
+          raw?: Json | null
+          signup_email?: string | null
+          status?: string
+          transaction_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -58,6 +142,7 @@ export type Database = {
           pomodoro_long_break_min: number
           pomodoro_rounds: number
           pomodoro_short_break_min: number
+          pro_expires_at: string | null
           referral_code: string | null
           referral_credits_egp: number
           referred_by_user_id: string | null
@@ -85,6 +170,7 @@ export type Database = {
           pomodoro_long_break_min?: number
           pomodoro_rounds?: number
           pomodoro_short_break_min?: number
+          pro_expires_at?: string | null
           referral_code?: string | null
           referral_credits_egp?: number
           referred_by_user_id?: string | null
@@ -112,6 +198,7 @@ export type Database = {
           pomodoro_long_break_min?: number
           pomodoro_rounds?: number
           pomodoro_short_break_min?: number
+          pro_expires_at?: string | null
           referral_code?: string | null
           referral_credits_egp?: number
           referred_by_user_id?: string | null
@@ -435,8 +522,10 @@ export type Database = {
     }
     Functions: {
       expire_all_pro_subscriptions: { Args: never; Returns: number }
-      expire_pro_if_due: { Args: never; Returns: boolean }
+      expire_pro_if_due: { Args: never; Returns: undefined }
       generate_referral_code: { Args: { _name: string }; Returns: string }
+      grant_pro: { Args: { _days: number; _user_id: string }; Returns: string }
+      send_pro_expiry_reminders: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
