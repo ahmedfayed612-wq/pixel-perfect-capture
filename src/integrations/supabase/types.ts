@@ -523,6 +523,10 @@ export type Database = {
     Functions: {
       expire_all_pro_subscriptions: { Args: never; Returns: number }
       expire_pro_if_due: { Args: never; Returns: undefined }
+      find_user_for_payment: {
+        Args: { _checkout_email: string; _phone: string; _signup_email: string }
+        Returns: string
+      }
       generate_referral_code: { Args: { _name: string }; Returns: string }
       grant_pro: { Args: { _days: number; _user_id: string }; Returns: string }
       send_pro_expiry_reminders: { Args: never; Returns: undefined }
