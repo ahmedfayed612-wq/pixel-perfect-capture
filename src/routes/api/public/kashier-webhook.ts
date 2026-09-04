@@ -1,72 +1,100 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+async function handle(request: Request) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  let raw: unknown = null;
+  let note = "";
+  let verified = false;
+  try {
+    const {
+      kashierEnv,
+      verifyKashierSignature,
+      finalizePayment,
+      flattenPayload,
+      processHostedPayment,
+    } = await import("@/lib/kashier.server");
+
+    const text = await request.text();
+    let body: Record<string, unknown> = {};
+    try {
+      body = JSON.parse(text) as Record<string, unknown>;
+    } catch {
+      body = Object.fromEntries(new URLSearchParams(text)) as Record<string, unknown>;
+    }
+    raw = body;
+
+    const payload = (body["data"] && typeof body["data"] === "object"
+      ? (body["data"] as Record<string, unknown>)
+      : body) as Record<string, unknown>;
+
+    const flatTop: Record<string, string> = {};
+    for (const [k, v] of Object.entries(payload)) {
+      if (v === null || v === undefined || typeof v === "object") continue;
+      flatTop[k] = String(v);
+    }
+
+    const signature =
+      (request.headers.get("x-kashier-signature") ?? "") ||
+      String(payload["signature"] ?? body["signature"] ?? "");
+
+    try {
+      const { apiKey, secretKey } = kashierEnv();
+      verified =
+        (await verifyKashierSignature(flatTop, signature, apiKey)) ||
+        (await verifyKashierSignature(flatTop, signature, secretKey));
+    } catch {
+      note += "env-missing;";
+    }
+
+    // Hosted payment pages do not always sign the callback. We still process it,
+    // but every request is logged so unverified traffic is auditable.
+    if (!verified) note += signature ? "signature-mismatch;" : "no-signature;";
+
+    const flat = flattenPayload(payload);
+    const orderId = flat["merchantOrderId"] ?? flat["orderId"] ?? "";
+    const paymentStatus = flat["status"] ?? flat["paymentStatus"] ?? "";
+
+    let handledLegacy = false;
+    if (orderId) {
+      const { data: sub } = await supabaseAdmin
+        .from("subscriptions")
+        .select("id")
+        .eq("kashier_order_id", orderId)
+        .maybeSingle();
+      if (sub) {
+        const res = await finalizePayment(orderId, paymentStatus);
+        note += `legacy:${res.status};`;
+        handledLegacy = true;
+      }
+    }
+
+    if (!handledLegacy) {
+      const res = await processHostedPayment(payload);
+      note += `hosted:${res.outcome};`;
+    }
+  } catch (e) {
+    note += `error:${e instanceof Error ? e.message : String(e)};`;
+  }
+
+  try {
+    await supabaseAdmin.from("webhook_logs").insert({
+      source: "kashier",
+      verified,
+      note,
+      raw: (raw ?? {}) as never,
+    });
+  } catch {
+    /* logging must never break the webhook */
+  }
+
+  return new Response("ok", { status: 200 });
+}
+
 export const Route = createFileRoute("/api/public/kashier-webhook")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        try {
-          const {
-            kashierEnv,
-            verifyKashierSignature,
-            finalizePayment,
-            flattenPayload,
-            processHostedPayment,
-          } = await import("@/lib/kashier.server");
-          const { apiKey, secretKey } = kashierEnv();
-          const body = (await request.json()) as Record<string, unknown>;
-
-          // Kashier posts { event, data: {...} } or a flat payload.
-          const payload = (body["data"] && typeof body["data"] === "object"
-            ? (body["data"] as Record<string, unknown>)
-            : body) as Record<string, unknown>;
-
-          // Signature is computed over the top-level scalar fields of the payload.
-          const flatTop: Record<string, string> = {};
-          for (const [k, v] of Object.entries(payload)) {
-            if (v === null || v === undefined || typeof v === "object") continue;
-            flatTop[k] = String(v);
-          }
-
-          const signature =
-            (request.headers.get("x-kashier-signature") ?? "") ||
-            String(payload["signature"] ?? body["signature"] ?? "");
-
-          const verified =
-            (await verifyKashierSignature(flatTop, signature, apiKey)) ||
-            (await verifyKashierSignature(flatTop, signature, secretKey));
-
-          if (!verified) {
-            return new Response("invalid signature", { status: 401 });
-          }
-
-          const flat = flattenPayload(payload);
-          const orderId = flat["merchantOrderId"] ?? flat["orderId"] ?? "";
-          const paymentStatus = flat["status"] ?? flat["paymentStatus"] ?? "";
-
-          // Legacy in-app checkout orders (subscriptions table) still finalize the old way.
-          let handledLegacy = false;
-          if (orderId) {
-            const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-            const { data: sub } = await supabaseAdmin
-              .from("subscriptions")
-              .select("id")
-              .eq("kashier_order_id", orderId)
-              .maybeSingle();
-            if (sub) {
-              await finalizePayment(orderId, paymentStatus);
-              handledLegacy = true;
-            }
-          }
-
-          // Hosted payment pages (checkouts.kashier.io).
-          if (!handledLegacy) {
-            await processHostedPayment(payload);
-          }
-        } catch {
-          // Swallow — Kashier retries on non-200 responses.
-        }
-        return new Response("ok", { status: 200 });
-      },
+      POST: async ({ request }) => handle(request),
+      GET: async ({ request }) => handle(request),
     },
   },
 });
