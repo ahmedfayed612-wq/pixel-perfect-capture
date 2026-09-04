@@ -85,10 +85,10 @@ function PaymentCallback() {
                 : "We couldn't confirm the payment. If you were charged it will activate automatically shortly."}
             </p>
             <button
-              onClick={() => navigate({ to: "/app/upgrade" })}
+              onClick={() => navigate({ to: "/payment-success" })}
               className="inline-flex h-11 items-center rounded-lg border border-light-grey bg-white px-6 text-cta text-near-black"
             >
-              {lang === "ar" ? "رجوع للاشتراك" : "Back to plans"}
+              {lang === "ar" ? "تحقق من حالة الاشتراك" : "Check subscription status"}
             </button>
           </>
         )}
