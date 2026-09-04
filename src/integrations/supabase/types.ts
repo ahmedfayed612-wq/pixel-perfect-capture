@@ -486,6 +486,33 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_logs: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          raw: Json | null
+          source: string
+          verified: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          raw?: Json | null
+          source?: string
+          verified?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          raw?: Json | null
+          source?: string
+          verified?: boolean
+        }
+        Relationships: []
+      }
       weekly_challenges: {
         Row: {
           completed: boolean
