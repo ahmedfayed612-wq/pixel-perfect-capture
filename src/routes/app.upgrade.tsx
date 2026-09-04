@@ -1,48 +1,40 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/auth/AuthProvider";
 import { useLang } from "@/i18n/LangProvider";
 import { tr, t } from "@/i18n/strings";
-import { toast } from "sonner";
-import { createKashierOrder, type KashierPlan } from "@/lib/kashier.functions";
 
-const KASHIER_BASE = "https://iframe.kashier.io/payment";
+type PlanKey = "monthly" | "nine_month";
+
+const HOSTED_LINKS: Record<PlanKey, string> = {
+  monthly: "https://checkouts.kashier.io/en/paymentpage?ppLink=PP-4538788301,live",
+  nine_month: "https://checkouts.kashier.io/en/paymentpage?ppLink=PP-4538788302,live",
+};
 
 export const Route = createFileRoute("/app/upgrade")({ component: UpgradePage });
 
 function UpgradePage() {
   const { profile, isPro } = useAuth();
   const { lang } = useLang();
-  const startOrder = useServerFn(createKashierOrder);
-  const [busy, setBusy] = useState<KashierPlan | null>(null);
+  const [busy, setBusy] = useState<PlanKey | null>(null);
 
-  const onUpgrade = async (plan: KashierPlan) => {
+  const onUpgrade = async (plan: PlanKey) => {
     if (busy) return;
     setBusy(plan);
-    try {
-      const order = await startOrder({ data: { plan } });
-      const confirmed = window.confirm(
-        lang === "ar"
-          ? `هتدفع ${order.amount} ج.م دلوقتي. نكمل للدفع؟`
-          : `You'll be charged ${order.amount} EGP now. Continue to payment?`
-      );
-      if (!confirmed) {
-        setBusy(null);
-        return;
-      }
-      const redirect = encodeURIComponent(`${window.location.origin}/payment-callback`);
-      window.location.href =
-        `${KASHIER_BASE}?mid=${encodeURIComponent(order.mid)}` +
-        `&orderId=${encodeURIComponent(order.orderId)}` +
-        `&amount=${order.amount}&currency=${order.currency}` +
-        `&hash=${order.hash}&merchantRedirect=${redirect}`;
-    } catch {
+    const amount = plan === "monthly" ? 45 : 360;
+    const confirmed = window.confirm(
+      lang === "ar"
+        ? `هتدفع ${amount} ج.م دلوقتي. نكمل للدفع؟\n\nمهم: في صفحة الدفع، اكتب نفس الإيميل اللي سجلت بيه في Waqti عشان نفعّل اشتراكك أوتوماتيك.`
+        : `You'll be charged ${amount} EGP now. Continue to payment?\n\nImportant: on the payment page, enter the same email you signed up to Waqti with so we can activate your subscription automatically.`
+    );
+    if (!confirmed) {
       setBusy(null);
-      toast.error(lang === "ar" ? "معرفناش نبدأ الدفع، جرب تاني." : "Couldn't start the payment, please try again.");
+      return;
     }
+    window.location.href = HOSTED_LINKS[plan];
   };
+
 
 
   return (
