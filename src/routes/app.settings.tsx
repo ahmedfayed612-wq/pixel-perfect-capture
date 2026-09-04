@@ -116,7 +116,7 @@ function SettingsPage() {
               {isPro ? "Pro" : tr(t.pricing.free.title, lang)}
             </div>
             <div className="text-xs text-mid-grey">
-              {isPro && profile.subscription_end
+              {isPro && profile?.subscription_end
                 ? `${lang === "ar" ? "بيتجدد" : "Renews"}: ${profile.subscription_end}`
                 : tr(t.subjects.upgradePrompt, lang)}
             </div>
