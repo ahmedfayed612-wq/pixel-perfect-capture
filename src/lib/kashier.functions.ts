@@ -6,11 +6,22 @@ export type KashierPlan = "monthly" | "nine_month";
 const PLAN_AMOUNT: Record<KashierPlan, number> = { monthly: 45, nine_month: 360 };
 
 function findSessionUrl(input: unknown, depth = 0): string | null {
-  if (!input || typeof input !== "object" || depth > 5) return null;
+  if (!input || typeof input !== "object" || depth > 6) return null;
+  // 1st pass: explicitly named URL fields
   for (const [k, v] of Object.entries(input as Record<string, unknown>)) {
-    if (typeof v === "string" && /sessionurl|checkouturl|redirecturl|paymenturl/i.test(k) && v.startsWith("http")) {
+    if (
+      typeof v === "string" &&
+      /session_?url|checkout_?url|redirect_?url|payment_?url|hosted_?url|^url$|iframe_?url/i.test(k) &&
+      v.startsWith("http")
+    ) {
       return v;
     }
+  }
+  // 2nd pass: any Kashier checkout-looking URL
+  for (const v of Object.values(input as Record<string, unknown>)) {
+    if (typeof v === "string" && /^https?:\/\/[^\s]*kashier\.io/i.test(v)) return v;
+  }
+  for (const v of Object.values(input as Record<string, unknown>)) {
     if (v && typeof v === "object") {
       const nested = findSessionUrl(v, depth + 1);
       if (nested) return nested;
@@ -18,6 +29,21 @@ function findSessionUrl(input: unknown, depth = 0): string | null {
   }
   return null;
 }
+
+function findSessionId(input: unknown, depth = 0): string | null {
+  if (!input || typeof input !== "object" || depth > 6) return null;
+  for (const [k, v] of Object.entries(input as Record<string, unknown>)) {
+    if (typeof v === "string" && v && /^session_?id$/i.test(k)) return v;
+  }
+  for (const v of Object.values(input as Record<string, unknown>)) {
+    if (v && typeof v === "object") {
+      const nested = findSessionId(v, depth + 1);
+      if (nested) return nested;
+    }
+  }
+  return null;
+}
+
 
 /** Creates a pending subscription row + a Kashier payment session, returns the hosted session URL. */
 export const createKashierOrder = createServerFn({ method: "POST" })
