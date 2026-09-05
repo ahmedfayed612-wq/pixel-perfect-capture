@@ -163,7 +163,12 @@ export function extractCheckoutEmail(flat: Record<string, string>): string | nul
     const v = flat[key];
     if (v && EMAIL_RE.test(v.trim())) return norm(v);
   }
-  const any = Object.entries(flat).find(([k, v]) => /email/i.test(k) && EMAIL_RE.test(v.trim()));
+  const any = Object.entries(flat).find(
+    ([k, v]) =>
+      /email/i.test(k) &&
+      !/business|merchant|shop|store|company/i.test(k) &&
+      EMAIL_RE.test(v.trim()),
+  );
   return any ? norm(any[1]) : null;
 }
 

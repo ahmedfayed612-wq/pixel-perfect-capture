@@ -59,7 +59,7 @@ export const createKashierOrder = createServerFn({ method: "POST" })
       },
       body: JSON.stringify({
         merchantId: mid,
-        orderId,
+        order: orderId,
         amount,
         currency,
         mode: "live",
