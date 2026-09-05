@@ -99,13 +99,46 @@ export const createKashierOrder = createServerFn({ method: "POST" })
       }),
     });
 
-    const body = (await res.json().catch(() => null)) as unknown;
-    const sessionUrl = findSessionUrl(body);
-    if (!res.ok || !sessionUrl) {
-      throw new Error("Could not start the payment session");
+    const text = await res.text();
+    let body: unknown = null;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      body = null;
+    }
+
+    let sessionUrl = findSessionUrl(body);
+    if (!sessionUrl) {
+      const sessionId = findSessionId(body);
+      if (sessionId) sessionUrl = `https://checkout.kashier.io/?sessionId=${encodeURIComponent(sessionId)}`;
+    }
+
+    if (!res.ok || !sessionUrl || !/^https?:\/\//.test(sessionUrl)) {
+      // Keep a server-side trace so failures are diagnosable without exposing keys.
+      try {
+        await supabaseAdmin.from("webhook_logs").insert({
+          source: "kashier-session",
+          verified: false,
+          note: `create-session http:${res.status}; order:${orderId}; url:${sessionUrl ?? "none"}`,
+          raw: (body ?? { text: text.slice(0, 2000) }) as never,
+        });
+      } catch {
+        /* logging must never break checkout */
+      }
+      const detail =
+        (body && typeof body === "object"
+          ? String(
+              (body as Record<string, unknown>)["message"] ??
+                (body as Record<string, unknown>)["messages"] ??
+                (body as Record<string, unknown>)["error"] ??
+                "",
+            )
+          : "") || `HTTP ${res.status}`;
+      throw new Error(`Could not start the payment session (${detail})`.slice(0, 300));
     }
 
     return { orderId, amount, currency, sessionUrl };
+
   });
 
 export const verifyKashierPayment = createServerFn({ method: "POST" })
