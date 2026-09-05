@@ -27,12 +27,6 @@ async function handle(request: Request) {
       ? (body["data"] as Record<string, unknown>)
       : body) as Record<string, unknown>;
 
-    const flatTop: Record<string, string> = {};
-    for (const [k, v] of Object.entries(payload)) {
-      if (v === null || v === undefined || typeof v === "object") continue;
-      flatTop[k] = String(v);
-    }
-
     const signature =
       (request.headers.get("x-kashier-signature") ?? "") ||
       String(payload["signature"] ?? body["signature"] ?? "");
@@ -40,11 +34,12 @@ async function handle(request: Request) {
     try {
       const { apiKey, secretKey } = kashierEnv();
       verified =
-        (await verifyKashierSignature(flatTop, signature, apiKey)) ||
-        (await verifyKashierSignature(flatTop, signature, secretKey));
+        (await verifyKashierSignature(payload, signature, apiKey)) ||
+        (await verifyKashierSignature(payload, signature, secretKey));
     } catch {
       note += "env-missing;";
     }
+
 
     // Hosted payment pages do not always sign the callback. We still process it,
     // but every request is logged so unverified traffic is auditable.
