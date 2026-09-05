@@ -23,14 +23,23 @@ function UpgradePage() {
     setBusy(plan);
     try {
       const res = await startOrder({ data: { plan, origin: window.location.origin } });
-      window.location.href = res.sessionUrl;
-    } catch {
+      const url = typeof res?.sessionUrl === "string" ? res.sessionUrl : "";
+      if (!/^https?:\/\//.test(url)) {
+        throw new Error("no-session-url");
+      }
+      window.location.href = url;
+    } catch (e) {
+      const detail = e instanceof Error ? e.message : "";
       toast.error(
-        lang === "ar" ? "معلش، مقدرناش نبدأ عملية الدفع. جرّب تاني." : "Sorry, we couldn't start the payment. Please try again.",
+        lang === "ar"
+          ? "معلش، مقدرناش نبدأ عملية الدفع. جرّب تاني أو كلّمنا على واتساب."
+          : "Sorry, we couldn't start the payment. Please try again or contact us on WhatsApp.",
+        detail && detail !== "no-session-url" ? { description: detail } : undefined,
       );
       setBusy(null);
     }
   };
+
 
 
 

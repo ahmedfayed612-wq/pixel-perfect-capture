@@ -6,11 +6,22 @@ export type KashierPlan = "monthly" | "nine_month";
 const PLAN_AMOUNT: Record<KashierPlan, number> = { monthly: 45, nine_month: 360 };
 
 function findSessionUrl(input: unknown, depth = 0): string | null {
-  if (!input || typeof input !== "object" || depth > 5) return null;
+  if (!input || typeof input !== "object" || depth > 6) return null;
+  // 1st pass: explicitly named URL fields
   for (const [k, v] of Object.entries(input as Record<string, unknown>)) {
-    if (typeof v === "string" && /sessionurl|checkouturl|redirecturl|paymenturl/i.test(k) && v.startsWith("http")) {
+    if (
+      typeof v === "string" &&
+      /session_?url|checkout_?url|redirect_?url|payment_?url|hosted_?url|^url$|iframe_?url/i.test(k) &&
+      v.startsWith("http")
+    ) {
       return v;
     }
+  }
+  // 2nd pass: any Kashier checkout-looking URL
+  for (const v of Object.values(input as Record<string, unknown>)) {
+    if (typeof v === "string" && /^https?:\/\/[^\s]*kashier\.io/i.test(v)) return v;
+  }
+  for (const v of Object.values(input as Record<string, unknown>)) {
     if (v && typeof v === "object") {
       const nested = findSessionUrl(v, depth + 1);
       if (nested) return nested;
@@ -18,6 +29,21 @@ function findSessionUrl(input: unknown, depth = 0): string | null {
   }
   return null;
 }
+
+function findSessionId(input: unknown, depth = 0): string | null {
+  if (!input || typeof input !== "object" || depth > 6) return null;
+  for (const [k, v] of Object.entries(input as Record<string, unknown>)) {
+    if (typeof v === "string" && v && /^session_?id$/i.test(k)) return v;
+  }
+  for (const v of Object.values(input as Record<string, unknown>)) {
+    if (v && typeof v === "object") {
+      const nested = findSessionId(v, depth + 1);
+      if (nested) return nested;
+    }
+  }
+  return null;
+}
+
 
 /** Creates a pending subscription row + a Kashier payment session, returns the hosted session URL. */
 export const createKashierOrder = createServerFn({ method: "POST" })
@@ -73,13 +99,46 @@ export const createKashierOrder = createServerFn({ method: "POST" })
       }),
     });
 
-    const body = (await res.json().catch(() => null)) as unknown;
-    const sessionUrl = findSessionUrl(body);
-    if (!res.ok || !sessionUrl) {
-      throw new Error("Could not start the payment session");
+    const text = await res.text();
+    let body: unknown = null;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      body = null;
+    }
+
+    let sessionUrl = findSessionUrl(body);
+    if (!sessionUrl) {
+      const sessionId = findSessionId(body);
+      if (sessionId) sessionUrl = `https://checkout.kashier.io/?sessionId=${encodeURIComponent(sessionId)}`;
+    }
+
+    if (!res.ok || !sessionUrl || !/^https?:\/\//.test(sessionUrl)) {
+      // Keep a server-side trace so failures are diagnosable without exposing keys.
+      try {
+        await supabaseAdmin.from("webhook_logs").insert({
+          source: "kashier-session",
+          verified: false,
+          note: `create-session http:${res.status}; order:${orderId}; url:${sessionUrl ?? "none"}`,
+          raw: (body ?? { text: text.slice(0, 2000) }) as never,
+        });
+      } catch {
+        /* logging must never break checkout */
+      }
+      const detail =
+        (body && typeof body === "object"
+          ? String(
+              (body as Record<string, unknown>)["message"] ??
+                (body as Record<string, unknown>)["messages"] ??
+                (body as Record<string, unknown>)["error"] ??
+                "",
+            )
+          : "") || `HTTP ${res.status}`;
+      throw new Error(`Could not start the payment session (${detail})`.slice(0, 300));
     }
 
     return { orderId, amount, currency, sessionUrl };
+
   });
 
 export const verifyKashierPayment = createServerFn({ method: "POST" })
