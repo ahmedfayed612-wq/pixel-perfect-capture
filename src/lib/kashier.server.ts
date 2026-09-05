@@ -31,22 +31,40 @@ export async function buildOrderHash(mid: string, orderId: string, amount: strin
 }
 
 /**
- * Kashier signs its callback/webhook payloads with an HMAC-SHA256 over the
- * `key=value&...` query string of every returned field except `signature` and `mode`.
+ * Kashier signs its callback/webhook payloads with an HMAC-SHA256 over a
+ * `key=value&...` string built from the fields named in `signatureKeys`,
+ * in exactly that order. Pass the raw (unflattened) payload.
  */
 export async function verifyKashierSignature(
-  params: Record<string, string>,
+  payload: Record<string, unknown>,
   signature: string,
-  apiKey: string,
+  key: string,
 ): Promise<boolean> {
   if (!signature) return false;
-  const queryString = Object.entries(params)
-    .filter(([k, v]) => k !== "signature" && k !== "mode" && v !== undefined && v !== null && v !== "")
-    .map(([k, v]) => `${k}=${v}`)
+
+  const source = (payload["data"] && typeof payload["data"] === "object"
+    ? (payload["data"] as Record<string, unknown>)
+    : payload) as Record<string, unknown>;
+
+  const rawKeys = (source["signatureKeys"] ?? payload["signatureKeys"]) as unknown;
+  const keys: string[] = Array.isArray(rawKeys)
+    ? rawKeys.map((k) => String(k))
+    : typeof rawKeys === "string"
+      ? rawKeys.split(",").map((k) => k.trim()).filter(Boolean)
+      : [];
+  if (keys.length === 0) return false;
+
+  const queryString = keys
+    .map((k) => {
+      const v = source[k] ?? payload[k];
+      return `${k}=${v === undefined || v === null ? "" : String(v)}`;
+    })
     .join("&");
-  const expected = await hmacSha256Hex(apiKey, queryString);
+
+  const expected = await hmacSha256Hex(key, queryString);
   return expected.toLowerCase() === signature.toLowerCase();
 }
+
 
 export type FinalizeResult = { ok: boolean; status: "active" | "failed" | "pending"; message?: string };
 
