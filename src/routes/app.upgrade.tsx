@@ -1,16 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { createKashierOrder } from "@/lib/kashier.functions";
 import { useAuth } from "@/auth/AuthProvider";
 import { useLang } from "@/i18n/LangProvider";
 import { tr, t } from "@/i18n/strings";
 
 type PlanKey = "monthly" | "nine_month";
-
-const HOSTED_LINKS: Record<PlanKey, string> = {
-  monthly: "https://checkouts.kashier.io/en/paymentpage?ppLink=PP-4538788301,live",
-  nine_month: "https://checkouts.kashier.io/en/paymentpage?ppLink=PP-4538788302,live",
-};
 
 export const Route = createFileRoute("/app/upgrade")({ component: UpgradePage });
 
@@ -18,22 +16,22 @@ function UpgradePage() {
   const { profile, isPro } = useAuth();
   const { lang } = useLang();
   const [busy, setBusy] = useState<PlanKey | null>(null);
+  const startOrder = useServerFn(createKashierOrder);
 
   const onUpgrade = async (plan: PlanKey) => {
     if (busy) return;
     setBusy(plan);
-    const amount = plan === "monthly" ? 45 : 360;
-    const confirmed = window.confirm(
-      lang === "ar"
-        ? `هتدفع ${amount} ج.م دلوقتي. نكمل للدفع؟\n\nمهم: في صفحة الدفع، اكتب نفس الإيميل اللي سجلت بيه في Waqti عشان نفعّل اشتراكك أوتوماتيك.`
-        : `You'll be charged ${amount} EGP now. Continue to payment?\n\nImportant: on the payment page, enter the same email you signed up to Waqti with so we can activate your subscription automatically.`
-    );
-    if (!confirmed) {
+    try {
+      const res = await startOrder({ data: { plan, origin: window.location.origin } });
+      window.location.href = res.sessionUrl;
+    } catch {
+      toast.error(
+        lang === "ar" ? "معلش، مقدرناش نبدأ عملية الدفع. جرّب تاني." : "Sorry, we couldn't start the payment. Please try again.",
+      );
       setBusy(null);
-      return;
     }
-    window.location.href = HOSTED_LINKS[plan];
   };
+
 
 
 
