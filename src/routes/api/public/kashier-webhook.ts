@@ -41,6 +41,12 @@ async function handle(request: Request) {
       note += "env-missing;";
     }
 
+    try {
+      const builtQueryString = buildKashierSignaturePayload(payload);
+      note += `debug:received=${signature};qs=${builtQueryString};`;
+    } catch (e) {
+      note += `debug:build-error:${e instanceof Error ? e.message : String(e)};`;
+    }
 
     // Hosted payment pages do not always sign the callback. We still process it,
     // but every request is logged so unverified traffic is auditable.
