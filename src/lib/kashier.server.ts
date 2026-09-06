@@ -32,8 +32,11 @@ export async function buildOrderHash(mid: string, orderId: string, amount: strin
 
 /**
  * Kashier signs its callback/webhook payloads with an HMAC-SHA256 over a
- * `key=value&...` string built from the fields named in `signatureKeys`,
- * in exactly that order. Pass the raw (unflattened) payload.
+ * `key=value&...` string built from the fields named in `signatureKeys`.
+ * Keys are sorted alphabetically and every key and value is URL-encoded
+ * with `encodeURIComponent`, matching Kashier's own signing method
+ * (`queryString.stringify(_.pick(data, data.signatureKeys))`).
+ * Pass the raw (unflattened) payload.
  */
 export async function verifyKashierSignature(
   payload: Record<string, unknown>,
@@ -54,10 +57,12 @@ export async function verifyKashierSignature(
       : [];
   if (keys.length === 0) return false;
 
-  const queryString = keys
+  const queryString = [...keys]
+    .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
     .map((k) => {
       const v = source[k] ?? payload[k];
-      return `${k}=${v === undefined || v === null ? "" : String(v)}`;
+      const value = v === undefined || v === null ? "" : String(v);
+      return `${encodeURIComponent(k)}=${encodeURIComponent(value)}`;
     })
     .join("&");
 
