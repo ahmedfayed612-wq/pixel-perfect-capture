@@ -6,6 +6,7 @@ async function handle(request: Request) {
   let raw: unknown = null;
   let note = "";
   let verified = false;
+  let responseStatus = 200;
   try {
     const {
       kashierEnv,
@@ -48,31 +49,32 @@ async function handle(request: Request) {
       note += `debug:build-error:${e instanceof Error ? e.message : String(e)};`;
     }
 
-    // Hosted payment pages do not always sign the callback. We still process it,
-    // but every request is logged so unverified traffic is auditable.
-    if (!verified) note += signature ? "signature-mismatch;" : "no-signature;";
+    if (!verified) {
+      note += signature ? "signature-mismatch;rejected;" : "no-signature;rejected;";
+      responseStatus = 401;
+    } else {
+      const flat = flattenPayload(payload);
+      const orderId = flat["merchantOrderId"] ?? flat["orderId"] ?? "";
+      const paymentStatus = flat["status"] ?? flat["paymentStatus"] ?? "";
 
-    const flat = flattenPayload(payload);
-    const orderId = flat["merchantOrderId"] ?? flat["orderId"] ?? "";
-    const paymentStatus = flat["status"] ?? flat["paymentStatus"] ?? "";
-
-    let handledLegacy = false;
-    if (orderId) {
-      const { data: sub } = await supabaseAdmin
-        .from("subscriptions")
-        .select("id")
-        .eq("kashier_order_id", orderId)
-        .maybeSingle();
-      if (sub) {
-        const res = await finalizePayment(orderId, paymentStatus);
-        note += `legacy:${res.status};`;
-        handledLegacy = true;
+      let handledLegacy = false;
+      if (orderId) {
+        const { data: sub } = await supabaseAdmin
+          .from("subscriptions")
+          .select("id")
+          .eq("kashier_order_id", orderId)
+          .maybeSingle();
+        if (sub) {
+          const res = await finalizePayment(orderId, paymentStatus);
+          note += `legacy:${res.status};`;
+          handledLegacy = true;
+        }
       }
-    }
 
-    if (!handledLegacy) {
-      const res = await processHostedPayment(payload);
-      note += `hosted:${res.outcome};`;
+      if (!handledLegacy) {
+        const res = await processHostedPayment(payload);
+        note += `hosted:${res.outcome};`;
+      }
     }
   } catch (e) {
     note += `error:${e instanceof Error ? e.message : String(e)};`;
@@ -89,7 +91,7 @@ async function handle(request: Request) {
     /* logging must never break the webhook */
   }
 
-  return new Response("ok", { status: 200 });
+  return new Response(responseStatus === 200 ? "ok" : "Invalid signature", { status: responseStatus });
 }
 
 export const Route = createFileRoute("/api/public/kashier-webhook")({

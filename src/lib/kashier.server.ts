@@ -100,24 +100,20 @@ export async function finalizePayment(orderId: string, paymentStatus: string): P
     return { ok: false, status: "failed" };
   }
 
-  const now = new Date();
-  const expiry = new Date(now);
-  expiry.setMonth(expiry.getMonth() + (sub.plan === "nine_month" ? 9 : 1));
+  const days = sub.plan === "nine_month" ? PLAN_PERIODS.nine_month : PLAN_PERIODS.monthly;
+  const { data: expiry, error: grantError } = await supabaseAdmin.rpc("grant_pro", {
+    _user_id: sub.user_id,
+    _days: days,
+  });
+  if (grantError || !expiry) {
+    throw new Error(`Could not activate Pro: ${grantError?.message ?? "missing expiry"}`);
+  }
 
-  await supabaseAdmin
+  const { error: updateError } = await supabaseAdmin
     .from("subscriptions")
-    .update({ status: "active", expiry_date: expiry.toISOString() })
+    .update({ status: "active", expiry_date: String(expiry) })
     .eq("id", sub.id);
-
-  await supabaseAdmin
-    .from("profiles")
-    .update({
-      is_pro: true,
-      plan: "pro",
-      subscription_start: now.toISOString().slice(0, 10),
-      subscription_end: expiry.toISOString().slice(0, 10),
-    })
-    .eq("id", sub.user_id);
+  if (updateError) throw new Error(`Could not activate subscription: ${updateError.message}`);
 
   return { ok: true, status: "active" };
 }
