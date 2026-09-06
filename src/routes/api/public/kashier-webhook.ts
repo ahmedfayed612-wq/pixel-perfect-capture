@@ -48,9 +48,10 @@ async function handle(request: Request) {
       note += `debug:build-error:${e instanceof Error ? e.message : String(e)};`;
     }
 
-    // Hosted payment pages do not always sign the callback. We still process it,
-    // but every request is logged so unverified traffic is auditable.
-    if (!verified) note += signature ? "signature-mismatch;" : "no-signature;";
+    if (!verified) {
+      note += signature ? "signature-mismatch;rejected;" : "no-signature;rejected;";
+      return new Response("Invalid signature", { status: 401 });
+    }
 
     const flat = flattenPayload(payload);
     const orderId = flat["merchantOrderId"] ?? flat["orderId"] ?? "";
