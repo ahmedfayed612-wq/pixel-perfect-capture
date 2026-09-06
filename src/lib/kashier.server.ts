@@ -38,13 +38,7 @@ export async function buildOrderHash(mid: string, orderId: string, amount: strin
  * (`queryString.stringify(_.pick(data, data.signatureKeys))`).
  * Pass the raw (unflattened) payload.
  */
-export async function verifyKashierSignature(
-  payload: Record<string, unknown>,
-  signature: string,
-  key: string,
-): Promise<boolean> {
-  if (!signature) return false;
-
+export function buildKashierSignaturePayload(payload: Record<string, unknown>): string {
   const source = (payload["data"] && typeof payload["data"] === "object"
     ? (payload["data"] as Record<string, unknown>)
     : payload) as Record<string, unknown>;
@@ -55,9 +49,9 @@ export async function verifyKashierSignature(
     : typeof rawKeys === "string"
       ? rawKeys.split(",").map((k) => k.trim()).filter(Boolean)
       : [];
-  if (keys.length === 0) return false;
+  if (keys.length === 0) return "";
 
-  const queryString = [...keys]
+  return [...keys]
     .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
     .map((k) => {
       const v = source[k] ?? payload[k];
@@ -65,6 +59,16 @@ export async function verifyKashierSignature(
       return `${encodeURIComponent(k)}=${encodeURIComponent(value)}`;
     })
     .join("&");
+}
+
+export async function verifyKashierSignature(
+  payload: Record<string, unknown>,
+  signature: string,
+  key: string,
+): Promise<boolean> {
+  if (!signature) return false;
+  const queryString = buildKashierSignaturePayload(payload);
+  if (!queryString) return false;
 
   const expected = await hmacSha256Hex(key, queryString);
   return expected.toLowerCase() === signature.toLowerCase();
