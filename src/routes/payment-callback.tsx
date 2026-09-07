@@ -33,18 +33,24 @@ function PaymentCallback() {
 
     let cancelled = false;
     (async () => {
-      try {
-        const res = await verifyKashierPayment({ data: { params } });
-        if (cancelled) return;
-        if (res.status === "active") {
-          await refresh();
-          setState("active");
-        } else {
-          setState("failed");
+      // The webhook can land a moment after the browser returns, so a pending
+      // order is re-checked a few times before giving up.
+      for (let attempt = 0; attempt < 5 && !cancelled; attempt++) {
+        try {
+          const res = await verifyKashierPayment({ data: { params } });
+          if (cancelled) return;
+          if (res.status === "active") {
+            await refresh();
+            setState("active");
+            return;
+          }
+          if (res.status !== "pending") break;
+        } catch {
+          break;
         }
-      } catch {
-        if (!cancelled) setState("failed");
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       }
+      if (!cancelled) setState("failed");
     })();
     return () => {
       cancelled = true;
