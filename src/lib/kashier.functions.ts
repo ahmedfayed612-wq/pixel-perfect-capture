@@ -11,7 +11,9 @@ function findSessionUrl(input: unknown, depth = 0): string | null {
   for (const [k, v] of Object.entries(input as Record<string, unknown>)) {
     if (
       typeof v === "string" &&
-      /session_?url|checkout_?url|redirect_?url|payment_?url|hosted_?url|^url$|iframe_?url/i.test(k) &&
+      /session_?url|checkout_?url|redirect_?url|payment_?url|hosted_?url|^url$|iframe_?url/i.test(
+        k,
+      ) &&
       v.startsWith("http")
     ) {
       return v;
@@ -43,7 +45,6 @@ function findSessionId(input: unknown, depth = 0): string | null {
   }
   return null;
 }
-
 
 /** Creates a pending subscription row + a Kashier payment session, returns the hosted session URL. */
 export const createKashierOrder = createServerFn({ method: "POST" })
@@ -110,7 +111,8 @@ export const createKashierOrder = createServerFn({ method: "POST" })
     let sessionUrl = findSessionUrl(body);
     if (!sessionUrl) {
       const sessionId = findSessionId(body);
-      if (sessionId) sessionUrl = `https://checkout.kashier.io/?sessionId=${encodeURIComponent(sessionId)}`;
+      if (sessionId)
+        sessionUrl = `https://checkout.kashier.io/?sessionId=${encodeURIComponent(sessionId)}`;
     }
 
     if (!res.ok || !sessionUrl || !/^https?:\/\//.test(sessionUrl)) {
@@ -138,7 +140,6 @@ export const createKashierOrder = createServerFn({ method: "POST" })
     }
 
     return { orderId, amount, currency, sessionUrl };
-
   });
 
 export const verifyKashierPayment = createServerFn({ method: "POST" })
@@ -147,19 +148,24 @@ export const verifyKashierPayment = createServerFn({ method: "POST" })
     return { params: input.params as Record<string, string> };
   })
   .handler(async ({ data }) => {
-    const { kashierEnv, verifyKashierSignature, finalizePayment } = await import("./kashier.server");
+    const {
+      kashierEnv,
+      verifyRedirectSignature,
+      finalizePayment,
+      orderIdCandidates,
+      reconcileAndFinalize,
+    } = await import("./kashier.server");
     const { apiKey, secretKey } = kashierEnv();
     const params = data.params;
     const signature = params["signature"] ?? "";
-    const orderId = params["merchantOrderId"] ?? params["orderId"] ?? "";
+    const orderIds = orderIdCandidates(params);
     const paymentStatus = params["paymentStatus"] ?? params["status"] ?? "";
 
-    const valid =
-      (await verifyKashierSignature(params as Record<string, unknown>, signature, apiKey)) ||
-      (await verifyKashierSignature(params as Record<string, unknown>, signature, secretKey));
-    if (!valid || !orderId) return { ok: false, status: "invalid" as const };
+    if (orderIds.length === 0) return { ok: false, status: "invalid" as const };
 
-    const result = await finalizePayment(orderId, paymentStatus);
+    const valid = await verifyRedirectSignature(params, signature, apiKey, secretKey);
+    const result = valid
+      ? await finalizePayment(orderIds, paymentStatus)
+      : await reconcileAndFinalize(orderIds);
     return { ok: result.ok, status: result.status };
   });
-
