@@ -208,20 +208,45 @@ export function orderIdCandidates(flat: Record<string, string>): string[] {
   return [...seen];
 }
 
-/** Read-only view of what the webhook has already applied to an order. */
-export async function subscriptionStatus(
-  orderIds: string[],
-): Promise<"active" | "failed" | "pending" | "invalid"> {
-  if (orderIds.length === 0) return "invalid";
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: sub } = await supabaseAdmin
-    .from("subscriptions")
-    .select("status")
-    .in("kashier_order_id", orderIds)
-    .limit(1)
-    .maybeSingle();
-  if (!sub) return "invalid";
-  return sub.status === "active" ? "active" : sub.status === "failed" ? "failed" : "pending";
+/**
+ * Asks Kashier itself what happened to an order. Callbacks are only as
+ * trustworthy as their signature, so this is the authority whenever the
+ * signature does not check out.
+ */
+export async function reconcileKashierOrder(
+  orderId: string,
+): Promise<"captured" | "failed" | "unknown"> {
+  const { apiKey, secretKey } = kashierEnv();
+  const url = `https://api.kashier.io/payments/orders/${encodeURIComponent(orderId)}`;
+
+  for (const token of [secretKey, apiKey]) {
+    let body: unknown;
+    try {
+      const res = await fetch(url, {
+        headers: { Authorization: token, accept: "application/json" },
+      });
+      if (!res.ok) continue;
+      body = await res.json();
+    } catch {
+      continue;
+    }
+    const envelope = body as Record<string, unknown> | null;
+    const order = (envelope?.["response"] ?? envelope) as Record<string, unknown> | null;
+    const status = norm(order?.["status"] as string | undefined);
+    if (!status) continue;
+    return status === "captured" || isSuccessStatus(status) ? "captured" : "failed";
+  }
+  return "unknown";
+}
+
+/** Applies a callback whose signature could not be verified, after confirming it with Kashier. */
+export async function reconcileAndFinalize(orderIds: string[]): Promise<FinalizeResult> {
+  for (const orderId of orderIds) {
+    const status = await reconcileKashierOrder(orderId);
+    if (status === "captured") return finalizePayment(orderIds, "SUCCESS");
+    if (status === "failed") return finalizePayment(orderIds, "FAILED");
+  }
+  return { ok: false, status: "pending", message: "Kashier could not confirm the order" };
 }
 
 /**

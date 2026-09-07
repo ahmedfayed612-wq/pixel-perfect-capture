@@ -153,7 +153,7 @@ export const verifyKashierPayment = createServerFn({ method: "POST" })
       verifyRedirectSignature,
       finalizePayment,
       orderIdCandidates,
-      subscriptionStatus,
+      reconcileAndFinalize,
     } = await import("./kashier.server");
     const { apiKey, secretKey } = kashierEnv();
     const params = data.params;
@@ -164,13 +164,8 @@ export const verifyKashierPayment = createServerFn({ method: "POST" })
     if (orderIds.length === 0) return { ok: false, status: "invalid" as const };
 
     const valid = await verifyRedirectSignature(params, signature, apiKey, secretKey);
-    if (!valid) {
-      // The webhook is the authoritative channel; report whatever it already applied
-      // instead of telling a paying customer the payment failed.
-      const status = await subscriptionStatus(orderIds);
-      return { ok: status === "active", status };
-    }
-
-    const result = await finalizePayment(orderIds, paymentStatus);
+    const result = valid
+      ? await finalizePayment(orderIds, paymentStatus)
+      : await reconcileAndFinalize(orderIds);
     return { ok: result.ok, status: result.status };
   });

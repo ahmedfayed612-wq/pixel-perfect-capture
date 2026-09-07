@@ -28,6 +28,7 @@ async function handle(request: Request) {
       flattenPayload,
       orderIdCandidates,
       processHostedPayment,
+      reconcileAndFinalize,
     } = await import("@/lib/kashier.server");
 
     const body = await readPayload(request);
@@ -48,33 +49,35 @@ async function handle(request: Request) {
       note += "env-missing;";
     }
 
-    if (!verified) {
-      note += signature ? "signature-mismatch;rejected;" : "no-signature;rejected;";
-      responseStatus = 401;
-    } else {
-      const flat = flattenPayload(payload);
-      const orderIds = orderIdCandidates(flat);
-      const paymentStatus = flat["status"] ?? flat["paymentStatus"] ?? "";
+    if (!verified) note += signature ? "signature-mismatch;" : "no-signature;";
 
-      let handledLegacy = false;
-      if (orderIds.length > 0) {
-        const { data: sub } = await supabaseAdmin
+    const flat = flattenPayload(payload);
+    const orderIds = orderIdCandidates(flat);
+    const paymentStatus = flat["status"] ?? flat["paymentStatus"] ?? "";
+
+    const { data: sub } = orderIds.length
+      ? await supabaseAdmin
           .from("subscriptions")
           .select("id")
           .in("kashier_order_id", orderIds)
           .limit(1)
-          .maybeSingle();
-        if (sub) {
-          const res = await finalizePayment(orderIds, paymentStatus);
-          note += `legacy:${res.status};`;
-          handledLegacy = true;
-        }
-      }
+          .maybeSingle()
+      : { data: null };
 
-      if (!handledLegacy) {
-        const res = await processHostedPayment(payload);
-        note += `hosted:${res.outcome};`;
-      }
+    if (sub) {
+      // A signature mismatch must not cost a paying customer their Pro access:
+      // ask Kashier directly what happened to the order instead of trusting the body.
+      const res = verified
+        ? await finalizePayment(orderIds, paymentStatus)
+        : await reconcileAndFinalize(orderIds);
+      note += `${verified ? "order" : "reconciled"}:${res.status};`;
+      if (res.status === "pending") responseStatus = 202;
+    } else if (verified) {
+      const res = await processHostedPayment(payload);
+      note += `hosted:${res.outcome};`;
+    } else {
+      note += "rejected;";
+      responseStatus = 401;
     }
   } catch (e) {
     note += `error:${e instanceof Error ? e.message : String(e)};`;
@@ -91,7 +94,7 @@ async function handle(request: Request) {
     /* logging must never break the webhook */
   }
 
-  return new Response(responseStatus === 200 ? "ok" : "Invalid signature", {
+  return new Response(responseStatus === 401 ? "Invalid signature" : "ok", {
     status: responseStatus,
   });
 }
