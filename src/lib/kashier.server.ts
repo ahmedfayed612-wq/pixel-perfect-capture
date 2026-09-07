@@ -213,9 +213,13 @@ export function orderIdCandidates(flat: Record<string, string>): string[] {
  * trustworthy as their signature, so this is the authority whenever the
  * signature does not check out.
  */
-export async function reconcileKashierOrder(
-  orderId: string,
-): Promise<"captured" | "failed" | "unknown"> {
+export type ReconciledOrder = {
+  status: "captured" | "failed" | "unknown";
+  /** Amount Kashier actually captured, not the amount the callback claims. */
+  amount: number | null;
+};
+
+export async function reconcileKashierOrder(orderId: string): Promise<ReconciledOrder> {
   const { apiKey, secretKey } = kashierEnv();
   const url = `https://api.kashier.io/payments/orders/${encodeURIComponent(orderId)}`;
 
@@ -234,15 +238,20 @@ export async function reconcileKashierOrder(
     const order = (envelope?.["response"] ?? envelope) as Record<string, unknown> | null;
     const status = norm(order?.["status"] as string | undefined);
     if (!status) continue;
-    return status === "captured" || isSuccessStatus(status) ? "captured" : "failed";
+
+    const captured = Number(order?.["totalCapturedAmount"]);
+    return {
+      status: status === "captured" || isSuccessStatus(status) ? "captured" : "failed",
+      amount: Number.isFinite(captured) ? captured : null,
+    };
   }
-  return "unknown";
+  return { status: "unknown", amount: null };
 }
 
 /** Applies a callback whose signature could not be verified, after confirming it with Kashier. */
 export async function reconcileAndFinalize(orderIds: string[]): Promise<FinalizeResult> {
   for (const orderId of orderIds) {
-    const status = await reconcileKashierOrder(orderId);
+    const { status } = await reconcileKashierOrder(orderId);
     if (status === "captured") return finalizePayment(orderIds, "SUCCESS");
     if (status === "failed") return finalizePayment(orderIds, "FAILED");
   }
@@ -398,11 +407,17 @@ export type HostedResult =
   | { ok: true; outcome: "granted" | "duplicate"; userId?: string; plan?: HostedPlan }
   | { ok: false; outcome: "not_success" | "unrecognized_amount" | "unmatched" | "invalid" };
 
-export async function processHostedPayment(rawPayload: unknown): Promise<HostedResult> {
+export async function processHostedPayment(
+  rawPayload: unknown,
+  reconciled?: ReconciledOrder,
+): Promise<HostedResult> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const flat = flattenPayload(rawPayload);
 
-  const status = flat["status"] ?? flat["paymentStatus"] ?? flat["transactionStatus"] ?? "";
+  const status =
+    reconciled?.status === "captured"
+      ? "SUCCESS"
+      : (flat["status"] ?? flat["paymentStatus"] ?? flat["transactionStatus"] ?? "");
   const transactionId =
     flat["transactionId"] ??
     flat["merchantOrderId"] ??
@@ -410,7 +425,9 @@ export async function processHostedPayment(rawPayload: unknown): Promise<HostedR
     flat["kashierOrderId"] ??
     flat["id"] ??
     "";
-  const amount = Number(flat["amount"] ?? flat["totalAmount"] ?? flat["orderAmount"] ?? NaN);
+  const amount =
+    reconciled?.amount ??
+    Number(flat["amount"] ?? flat["totalAmount"] ?? flat["orderAmount"] ?? NaN);
   const currency = (flat["currency"] ?? "EGP").toUpperCase();
 
   if (!transactionId) return { ok: false, outcome: "invalid" };

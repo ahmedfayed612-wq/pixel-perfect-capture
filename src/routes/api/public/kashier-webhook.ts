@@ -29,6 +29,7 @@ async function handle(request: Request) {
       orderIdCandidates,
       processHostedPayment,
       reconcileAndFinalize,
+      reconcileKashierOrder,
     } = await import("@/lib/kashier.server");
 
     const body = await readPayload(request);
@@ -75,6 +76,16 @@ async function handle(request: Request) {
     } else if (verified) {
       const res = await processHostedPayment(payload);
       note += `hosted:${res.outcome};`;
+    } else if (orderIds.length) {
+      // Payment page purchases carry no order of ours; only Kashier can vouch for them.
+      const reconciled = await reconcileKashierOrder(orderIds[0]!);
+      if (reconciled.status === "captured") {
+        const res = await processHostedPayment(payload, reconciled);
+        note += `hosted-reconciled:${res.outcome};`;
+      } else {
+        note += `rejected:${reconciled.status};`;
+        responseStatus = reconciled.status === "unknown" ? 401 : 200;
+      }
     } else {
       note += "rejected;";
       responseStatus = 401;
