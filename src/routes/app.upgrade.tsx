@@ -7,6 +7,7 @@ import { createKashierOrder } from "@/lib/kashier.functions";
 import { useAuth } from "@/auth/AuthProvider";
 import { useLang } from "@/i18n/LangProvider";
 import { tr, t } from "@/i18n/strings";
+import { WhatsAppPaymentModal } from "@/components/WhatsAppPaymentModal";
 
 type PlanKey = "monthly" | "nine_month";
 
@@ -16,10 +17,27 @@ function UpgradePage() {
   const { profile, isPro } = useAuth();
   const { lang } = useLang();
   const [busy, setBusy] = useState<PlanKey | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<PlanKey | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const startOrder = useServerFn(createKashierOrder);
+
+  const paymentFlow = import.meta.env.VITE_PAYMENT_FLOW || "kashier";
+
+  const getPlanCode = (plan: PlanKey): string => {
+    return plan === "monthly" ? "PRO45" : "PRO360";
+  };
 
   const onUpgrade = async (plan: PlanKey) => {
     if (busy) return;
+    
+    if (paymentFlow === "whatsapp") {
+      setSelectedPlan(plan);
+      setShowModal(true);
+      return;
+    }
+    
+    // Original Kashier flow
     setBusy(plan);
     try {
       const res = await startOrder({ data: { plan, origin: window.location.origin } });
@@ -38,6 +56,10 @@ function UpgradePage() {
       );
       setBusy(null);
     }
+  };
+
+  const handleWhatsAppConfirm = () => {
+    setShowConfirmation(true);
   };
 
 
@@ -140,6 +162,20 @@ function UpgradePage() {
           {tr(t.contact.whatsapp, lang)}
         </a>
       </div>
+
+      {showConfirmation && (
+        <div className="mt-4 rounded-lg border-s-4 border-teal bg-teal-light p-4 text-sm text-near-black">
+          {tr(t.whatsappPayment.confirmation, lang)}
+        </div>
+      )}
+
+      <WhatsAppPaymentModal
+        open={showModal}
+        onOpenChange={setShowModal}
+        planCode={selectedPlan ? getPlanCode(selectedPlan) : ""}
+        userEmail={profile?.email || ""}
+        onConfirm={handleWhatsAppConfirm}
+      />
     </div>
   );
 }

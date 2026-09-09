@@ -192,6 +192,17 @@ export const t = {
     label: { en: "Contact", ar: "تواصل معنا" },
   },
 
+  whatsappPayment: {
+    modalTitle: { en: "How will activation work?", ar: "إزاي هيتم التفعيل؟" },
+    step1: { en: 'Click "Send Order" — this will open WhatsApp with a ready message containing your plan code', ar: 'اضغط "ابعت الطلب" — هيفتحلك واتساب برسالة جاهزة عليها كود باقتك' },
+    step2: { en: 'The message will contain PRO45 (monthly) or PRO360 (yearly) depending on what you chose — just click send', ar: 'الرسالة هتكون فيها PRO45 (شهري) أو PRO360 (سنوي) حسب اللي اخترته — كل اللي عليك إنك تدوس ابعت' },
+    step3: { en: "We'll send you the payment link immediately. Pay, then send us a screenshot of the successful transaction in the same chat", ar: 'هنبعتلك لينك الدفع فورًا. ادفع، وابعتلنا سكرين شوت من نجاح العملية في نفس المحادثة' },
+    step4: { en: "Your account will be activated within 24 hours maximum (usually faster)", ar: "حسابك هيتفعل خلال 24 ساعة كحد أقصى (غالبًا هيبقى أسرع)" },
+    trustLine: { en: "Activation is done personally by us 🙌", ar: "التفعيل بييديّ إحنا شخصيًا 🙌" },
+    ctaButton: { en: "Send Order Now", ar: "ابعت الطلب دلوقتي" },
+    confirmation: { en: "Your request has been sent, we'll activate your account within 24 hours of payment receipt", ar: "تم إرسال طلبك، هنفعل حسابك خلال 24 ساعة من استلام الدفع" },
+  },
+
   charity: {
     body: { en: "Donated to Resala Charity so far", ar: "اتبرعنا بيها لجمعية رسالة لحد دلوقتي" },
     sub: { en: "15 EGP from every student's first month subscription", ar: "15 جنيه من أول اشتراك لكل طالب" },
