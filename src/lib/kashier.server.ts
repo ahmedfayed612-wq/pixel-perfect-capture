@@ -190,6 +190,46 @@ export type FinalizeResult = {
   message?: string;
 };
 
+export type PaymentStatus = "active" | "failed" | "pending" | "success" | "captured" | "approved";
+
+/**
+ * Call Kashier's API to verify payment status directly.
+ * This is used when signature verification fails but we have an order ID.
+ */
+async function reconcileWithKashierAPI(orderId: string): Promise<{ status: string | null; error?: string }> {
+  try {
+    const { mid, secretKey } = kashierEnv();
+    
+    console.log("[Kashier API] Reconciling order:", orderId);
+    
+    const response = await fetch(`https://api.kashier.io/v3/payments/orders/${orderId}`, {
+      method: "GET",
+      headers: {
+        "Authorization": secretKey,
+        "api-key": process.env["KASHIER_API_KEY"] || "",
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("[Kashier API] Reconciliation failed:", response.status, errorText);
+      return { status: null, error: `HTTP ${response.status}: ${errorText}` };
+    }
+
+    const data = await response.json();
+    console.log("[Kashier API] Reconciliation response:", JSON.stringify(data).slice(0, 500));
+    
+    // Extract payment status from Kashier response
+    const status = data?.data?.status || data?.status || data?.paymentStatus || null;
+    console.log("[Kashier API] Extracted status:", status);
+    
+    return { status };
+  } catch (error) {
+    console.error("[Kashier API] Reconciliation error:", error);
+    return { status: null, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
 /** Keys under which Kashier echoes back the order id we sent as `order`. */
 const ORDER_ID_KEYS = [
   "merchantOrderId",
@@ -281,7 +321,23 @@ export async function finalizePayment(
   if (error || !sub) return { ok: false, status: "pending", message: "Order not found" };
   if (sub.status === "active") return { ok: true, status: "active" };
 
-  if (!isSuccessStatus(paymentStatus)) {
+  let success = String(paymentStatus).toUpperCase() === "SUCCESS";
+  
+  // If payment status is not successful from webhook, try reconciling with Kashier API
+  if (!success) {
+    console.log("[Payment] Webhook status not successful, attempting Kashier API reconciliation");
+    const reconciliation = await reconcileWithKashierAPI(orderIds[0]);
+    
+    if (reconciliation.status) {
+      const normalizedStatus = String(reconciliation.status).toUpperCase();
+      success = ["SUCCESS", "CAPTURED", "APPROVED", "PAID"].includes(normalizedStatus);
+      console.log("[Payment] Reconciliation status:", reconciliation.status, "Success:", success);
+    } else {
+      console.log("[Payment] Reconciliation failed:", reconciliation.error);
+    }
+  }
+
+  if (!success) {
     // Anything still in flight stays pending so a later SUCCESS can activate it.
     if (!isFailureStatus(paymentStatus)) return { ok: false, status: "pending" };
     await supabaseAdmin.from("subscriptions").update({ status: "failed" }).eq("id", sub.id);
@@ -312,6 +368,7 @@ export async function finalizePayment(
 
 export const PLAN_PERIODS = { monthly: 30, nine_month: 270 } as const;
 export type HostedPlan = keyof typeof PLAN_PERIODS;
+export type SubscriptionPlan = "monthly" | "nine_month";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -349,26 +406,56 @@ const norm = (s: string | undefined | null) => (s ?? "").trim().toLowerCase();
 /** Custom field: "Email you used to sign up for Waqti" (or any signup/account-email labelled field). */
 export function extractSignupEmail(flat: Record<string, string>): string | null {
   const entries = Object.entries(flat);
-  const labelled = entries.find(
-    ([k, v]) => /sign\s*-?up|signup|waqti|account/i.test(k) && EMAIL_RE.test(v.trim()),
-  );
+  
+  // First try: Look for explicit signup/waqti/account labelled fields
+  const labelled = entries.find(([k, v]) => /sign\s*-?up|signup|waqti|account/i.test(k) && EMAIL_RE.test(v.trim()));
   if (labelled) return norm(labelled[1]);
+  
+  // Second try: Look for custom/extra/meta fields with emails
   const custom = entries.find(([k, v]) => /custom|extra|meta/i.test(k) && EMAIL_RE.test(v.trim()));
-  return custom ? norm(custom[1]) : null;
+  if (custom) return norm(custom[1]);
+  
+  // Third try: Look for any field with "email" in the name that might be user-provided
+  const anyEmail = entries.find(([k, v]) => 
+    /email/i.test(k) && 
+    !/business|merchant|shop|store|company|admin|support/i.test(k) && 
+    EMAIL_RE.test(v.trim())
+  );
+  if (anyEmail) return norm(anyEmail[1]);
+  
+  // Fourth try: Look for customer data fields
+  const customer = entries.find(([k, v]) => 
+    /customer|user|payer|buyer/i.test(k) && 
+    EMAIL_RE.test(v.trim())
+  );
+  if (customer) return norm(customer[1]);
+  
+  return null;
 }
 
 export function extractCheckoutEmail(flat: Record<string, string>): string | null {
-  for (const key of ["email", "customerEmail", "billingEmail", "payerEmail", "customer_email"]) {
+  // First try: Standard email field names
+  for (const key of ["email", "customerEmail", "billingEmail", "payerEmail", "customer_email", "payer_email", "billing_email"]) {
     const v = flat[key];
     if (v && EMAIL_RE.test(v.trim())) return norm(v);
   }
+  
+  // Second try: Any field with "email" in the name, excluding business emails
   const any = Object.entries(flat).find(
     ([k, v]) =>
       /email/i.test(k) &&
-      !/business|merchant|shop|store|company/i.test(k) &&
+      !/business|merchant|shop|store|company|admin|support/i.test(k) &&
       EMAIL_RE.test(v.trim()),
   );
-  return any ? norm(any[1]) : null;
+  if (any) return norm(any[1]);
+  
+  // Third try: Look in nested customer object data (sometimes flattened)
+  const customerFields = Object.entries(flat).filter(([k]) => /customer/i.test(k));
+  for (const [k, v] of customerFields) {
+    if (EMAIL_RE.test(v.trim())) return norm(v);
+  }
+  
+  return null;
 }
 
 export function extractPhone(flat: Record<string, string>): string | null {
@@ -407,6 +494,44 @@ export type HostedResult =
   | { ok: true; outcome: "granted" | "duplicate"; userId?: string; plan?: HostedPlan }
   | { ok: false; outcome: "not_success" | "unrecognized_amount" | "unmatched" | "invalid" };
 
+async function grantProAccess(
+  userId: string,
+  transactionId: string,
+  amount: number,
+  currency: string,
+  plan: HostedPlan,
+  signupEmail: string | null,
+  checkoutEmail: string | null,
+  phone: string | null,
+  rawPayload: unknown
+): Promise<HostedResult> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  
+  console.log("[Payment Debug] Granting Pro to user:", userId, "for", PLAN_PERIODS[plan], "days");
+  await supabaseAdmin.rpc("grant_pro", { _user_id: userId, _days: PLAN_PERIODS[plan] });
+
+  console.log("[Payment Debug] Logging successful payment match");
+  await supabaseAdmin.from("payments").upsert(
+    {
+      transaction_id: transactionId,
+      user_id: userId,
+      amount,
+      currency,
+      plan,
+      status: "matched",
+      signup_email: signupEmail,
+      checkout_email: checkoutEmail,
+      checkout_phone: phone,
+      raw: rawPayload as never,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "transaction_id" },
+  );
+
+  console.log("[Payment Debug] Payment processed successfully - Pro granted");
+  return { ok: true, outcome: "granted", userId, plan };
+}
+
 export async function processHostedPayment(
   rawPayload: unknown,
   reconciled?: ReconciledOrder,
@@ -430,83 +555,232 @@ export async function processHostedPayment(
     Number(flat["amount"] ?? flat["totalAmount"] ?? flat["orderAmount"] ?? NaN);
   const currency = (flat["currency"] ?? "EGP").toUpperCase();
 
+  // Enhanced logging for debugging
+  console.log("[Payment Debug] Transaction ID:", transactionId);
+  console.log("[Payment Debug] Status:", status);
+  console.log("[Payment Debug] Amount:", amount, currency);
+  console.log("[Payment Debug] Flattened payload keys:", Object.keys(flat).slice(0, 20).join(", "));
+
   if (!transactionId) return { ok: false, outcome: "invalid" };
-  if (!isSuccessStatus(status)) return { ok: false, outcome: "not_success" };
+  
+  // For hosted payments, we need to verify with Kashier API if signature verification failed
+  // This is critical because hosted payments often don't have user information in the webhook
+  if (!isSuccessStatus(status)) {
+    console.log("[Payment Debug] Status not successful, attempting Kashier API reconciliation");
+    const reconciliation = await reconcileWithKashierAPI(transactionId);
+    
+    if (reconciliation.status) {
+      const normalizedStatus = String(reconciliation.status).toUpperCase();
+      const isActuallySuccessful = ["SUCCESS", "CAPTURED", "APPROVED", "PAID"].includes(normalizedStatus);
+      console.log("[Payment Debug] Reconciliation status:", reconciliation.status, "Actually successful:", isActuallySuccessful);
+      
+      if (!isActuallySuccessful) {
+        return { ok: false, outcome: "not_success" };
+      }
+      // If reconciliation shows success, continue processing
+    } else {
+      console.log("[Payment Debug] Reconciliation failed:", reconciliation.error);
+      return { ok: false, outcome: "not_success" };
+    }
+  }
 
   const signupEmail = extractSignupEmail(flat);
   const checkoutEmail = extractCheckoutEmail(flat);
   const phone = extractPhone(flat);
 
+  console.log("[Payment Debug] Extracted emails - signup:", signupEmail, "checkout:", checkoutEmail, "phone:", phone);
+
   const plan = planFromAmount(amount);
   if (!plan) {
-    await supabaseAdmin.from("payments").upsert(
-      {
-        transaction_id: transactionId,
-        amount: Number.isFinite(amount) ? amount : 0,
-        currency,
-        status: "unrecognized_amount",
-        signup_email: signupEmail,
-        checkout_email: checkoutEmail,
-        checkout_phone: phone,
-        raw: rawPayload as never,
-      },
-      { onConflict: "transaction_id", ignoreDuplicates: true },
-    );
+    try {
+      await supabaseAdmin.from("payments").upsert(
+        {
+          transaction_id: transactionId,
+          amount: Number.isFinite(amount) ? amount : 0,
+          currency,
+          status: "unrecognized_amount",
+          signup_email: signupEmail,
+          checkout_email: checkoutEmail,
+          checkout_phone: phone,
+          raw: rawPayload as never,
+        },
+        { onConflict: "transaction_id", ignoreDuplicates: true },
+      );
+    } catch (error) {
+      console.error("Failed to log unrecognized amount payment:", error);
+    }
     return { ok: false, outcome: "unrecognized_amount" };
   }
 
   // Idempotency: this transaction was already processed.
-  const { data: existing } = await supabaseAdmin
-    .from("payments")
-    .select("id, status, user_id")
-    .eq("transaction_id", transactionId)
-    .maybeSingle();
-  if (existing && existing.status === "matched") {
-    return { ok: true, outcome: "duplicate", plan };
+  try {
+    const { data: existing, error: existingError } = await supabaseAdmin
+      .from("payments")
+      .select("id, status, user_id, plan")
+      .eq("transaction_id", transactionId)
+      .maybeSingle();
+    
+    if (existingError) {
+      console.error("Failed to check existing payment:", existingError);
+    }
+    
+    if (existing && existing.status === "matched") {
+      return { ok: true, outcome: "duplicate", plan: existing.plan as HostedPlan };
+    }
+    
+    // If payment exists but wasn't matched, we can retry processing
+    if (existing && existing.status !== "matched") {
+      // Continue with processing - will update the existing record
+    }
+  } catch (error) {
+    console.error("Error checking existing payment:", error);
+    // Continue with processing - better to potentially duplicate than to fail
   }
 
-  const { data: userId } = await supabaseAdmin.rpc("find_user_for_payment", {
-    _signup_email: signupEmail ?? "",
-    _checkout_email: checkoutEmail ?? "",
-    _phone: phone ?? "",
-  });
+  try {
+    console.log("[Payment Debug] Attempting to find user with emails and phone...");
+    const { data: userId, error: userError } = await supabaseAdmin.rpc("find_user_for_payment", {
+      _signup_email: signupEmail ?? "",
+      _checkout_email: checkoutEmail ?? "",
+      _phone: phone ?? "",
+    });
 
-  if (!userId) {
-    await supabaseAdmin.from("payments").upsert(
-      {
-        transaction_id: transactionId,
-        amount,
-        currency,
-        plan,
-        status: "unmatched",
-        signup_email: signupEmail,
-        checkout_email: checkoutEmail,
-        checkout_phone: phone,
-        raw: rawPayload as never,
-      },
-      { onConflict: "transaction_id" },
-    );
+    if (userError) {
+      console.error("[Payment Debug] Failed to find user for payment:", userError);
+    }
+
+    console.log("[Payment Debug] User ID found from email/phone:", userId);
+
+    // Fallback 1: Try to extract user_id from metadata if email matching failed
+    if (!userId) {
+      const metadataUserId = flat["user_id"] ?? flat["userId"] ?? flat["customerReference"] ?? flat["reference"];
+      if (metadataUserId) {
+        console.log("[Payment Debug] Trying fallback user_id from metadata:", metadataUserId);
+        try {
+          // Validate it's a valid UUID
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          if (uuidRegex.test(metadataUserId)) {
+            const { data: userExists } = await supabaseAdmin
+              .from("profiles")
+              .select("id")
+              .eq("id", metadataUserId)
+              .maybeSingle();
+            
+            if (userExists) {
+              console.log("[Payment Debug] Found user from metadata fallback:", metadataUserId);
+              return await grantProAccess(metadataUserId, transactionId, amount, currency, plan, signupEmail, checkoutEmail, phone, rawPayload);
+            }
+          }
+        } catch (metadataError) {
+          console.error("[Payment Debug] Error using metadata fallback:", metadataError);
+        }
+      }
+    }
+
+    // Fallback 2: Try to get user_id from Kashier API if we still don't have a user match
+    if (!userId) {
+      console.log("[Payment Debug] No user found through email/metadata, checking Kashier API for order details");
+      try {
+        const { mid, secretKey } = kashierEnv();
+        const response = await fetch(`https://api.kashier.io/v3/payments/orders/${transactionId}`, {
+          method: "GET",
+          headers: {
+            "Authorization": secretKey,
+            "api-key": process.env["KASHIER_API_KEY"] || "",
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("[Payment Debug] Kashier API order details:", JSON.stringify(data).slice(0, 500));
+          
+          // Try to extract user_id from the order's metadata
+          const apiUserId = data?.data?.metaData?.user_id || data?.metaData?.user_id;
+          if (apiUserId) {
+            console.log("[Payment Debug] Found user_id from Kashier API metadata:", apiUserId);
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            if (uuidRegex.test(apiUserId)) {
+              const { data: userExists } = await supabaseAdmin
+                .from("profiles")
+                .select("id")
+                .eq("id", apiUserId)
+                .maybeSingle();
+              
+              if (userExists) {
+                console.log("[Payment Debug] Found user from Kashier API metadata:", apiUserId);
+                return await grantProAccess(apiUserId, transactionId, amount, currency, plan, signupEmail, checkoutEmail, phone, rawPayload);
+              }
+            }
+          }
+          
+          // Fallback 3: Try to match by customer email from Kashier API
+          const apiCustomerEmail = data?.data?.customer?.email;
+          if (apiCustomerEmail) {
+            console.log("[Payment Debug] Found customer email from Kashier API:", apiCustomerEmail);
+            const { data: emailMatchUserId } = await supabaseAdmin.rpc("find_user_for_payment", {
+              _signup_email: "",
+              _checkout_email: apiCustomerEmail,
+              _phone: "",
+            });
+            
+            if (emailMatchUserId) {
+              console.log("[Payment Debug] Found user from Kashier API customer email:", emailMatchUserId);
+              return await grantProAccess(emailMatchUserId as string, transactionId, amount, currency, plan, apiCustomerEmail, checkoutEmail, phone, rawPayload);
+            }
+          }
+        }
+      } catch (apiError) {
+        console.error("[Payment Debug] Error calling Kashier API for user matching:", apiError);
+      }
+    }
+
+    // If we found user through email/phone matching, grant Pro access
+    if (userId) {
+      return await grantProAccess(userId as string, transactionId, amount, currency, plan, signupEmail, checkoutEmail, phone, rawPayload);
+    }
+
+    // No user found through any method
+    console.log("[Payment Debug] No user found through any method - logging unmatched payment");
+    try {
+      await supabaseAdmin.from("payments").upsert(
+        {
+          transaction_id: transactionId,
+          amount,
+          currency,
+          plan,
+          status: "unmatched",
+          signup_email: signupEmail,
+          checkout_email: checkoutEmail,
+          checkout_phone: phone,
+          raw: rawPayload as never,
+        },
+        { onConflict: "transaction_id" },
+      );
+    } catch (error) {
+      console.error("Failed to log unmatched payment:", error);
+    }
     return { ok: false, outcome: "unmatched" };
+  } catch (error) {
+    console.error("Error processing hosted payment:", error);
+    // Log the error for debugging
+    try {
+      await supabaseAdmin.from("payments").upsert(
+        {
+          transaction_id: transactionId,
+          amount,
+          currency,
+          plan,
+          status: "error",
+          signup_email: signupEmail,
+          checkout_email: checkoutEmail,
+          checkout_phone: phone,
+          raw: { ...rawPayload, error: error instanceof Error ? error.message : String(error) } as never,
+        },
+        { onConflict: "transaction_id" },
+      );
+    } catch (logError) {
+      console.error("Failed to log payment error:", logError);
+    }
+    return { ok: false, outcome: "invalid" };
   }
-
-  await supabaseAdmin.rpc("grant_pro", { _user_id: userId as string, _days: PLAN_PERIODS[plan] });
-
-  await supabaseAdmin.from("payments").upsert(
-    {
-      transaction_id: transactionId,
-      user_id: userId as string,
-      amount,
-      currency,
-      plan,
-      status: "matched",
-      signup_email: signupEmail,
-      checkout_email: checkoutEmail,
-      checkout_phone: phone,
-      raw: rawPayload as never,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "transaction_id" },
-  );
-
-  return { ok: true, outcome: "granted", userId: userId as string, plan };
 }

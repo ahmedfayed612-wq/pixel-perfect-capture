@@ -62,9 +62,13 @@ export const createKashierOrder = createServerFn({ method: "POST" })
     const currency = "EGP";
     const orderId = crypto.randomUUID();
 
+    console.log("[Order Creation] Creating order for user:", context.userId, "plan:", data.plan, "amount:", amount);
+
     // Real account email — never typed by the customer at checkout.
     const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(context.userId);
     const email = authUser?.user?.email ?? "";
+
+    console.log("[Order Creation] User email:", email);
 
     const { error } = await supabaseAdmin.from("subscriptions").insert({
       user_id: context.userId,
@@ -73,7 +77,12 @@ export const createKashierOrder = createServerFn({ method: "POST" })
       kashier_order_id: orderId,
       amount_paid: amount,
     });
-    if (error) throw new Error("Could not create the order");
+    if (error) {
+      console.error("[Order Creation] Failed to create subscription:", error);
+      throw new Error("Could not create the order");
+    }
+
+    console.log("[Order Creation] Subscription created successfully, order ID:", orderId);
 
     const origin = data.origin || "https://waqtitech.lovable.app";
 
@@ -108,12 +117,16 @@ export const createKashierOrder = createServerFn({ method: "POST" })
       body = null;
     }
 
+    console.log("[Order Creation] Kashier API response status:", res.status);
+
     let sessionUrl = findSessionUrl(body);
     if (!sessionUrl) {
       const sessionId = findSessionId(body);
       if (sessionId)
         sessionUrl = `https://checkout.kashier.io/?sessionId=${encodeURIComponent(sessionId)}`;
     }
+
+    console.log("[Order Creation] Session URL:", sessionUrl);
 
     if (!res.ok || !sessionUrl || !/^https?:\/\//.test(sessionUrl)) {
       // Keep a server-side trace so failures are diagnosable without exposing keys.
@@ -136,9 +149,11 @@ export const createKashierOrder = createServerFn({ method: "POST" })
                 "",
             )
           : "") || `HTTP ${res.status}`;
+      console.error("[Order Creation] Failed to create session:", detail);
       throw new Error(`Could not start the payment session (${detail})`.slice(0, 300));
     }
 
+    console.log("[Order Creation] Payment session created successfully");
     return { orderId, amount, currency, sessionUrl };
   });
 
@@ -161,11 +176,23 @@ export const verifyKashierPayment = createServerFn({ method: "POST" })
     const orderIds = orderIdCandidates(params);
     const paymentStatus = params["paymentStatus"] ?? params["status"] ?? "";
 
-    if (orderIds.length === 0) return { ok: false, status: "invalid" as const };
+    console.log("[Payment Callback] Processing payment verification");
+    console.log("[Payment Callback] Order IDs:", orderIds);
+    console.log("[Payment Callback] Payment status:", paymentStatus);
+    console.log("[Payment Callback] Signature present:", !!signature);
+
+    if (orderIds.length === 0) {
+      console.log("[Payment Callback] No order IDs found - invalid");
+      return { ok: false, status: "invalid" as const };
+    }
 
     const valid = await verifyRedirectSignature(params, signature, apiKey, secretKey);
+    console.log("[Payment Callback] Signature valid:", valid);
+    
     const result = valid
       ? await finalizePayment(orderIds, paymentStatus)
       : await reconcileAndFinalize(orderIds);
+    
+    console.log("[Payment Callback] Final result:", result);
     return { ok: result.ok, status: result.status };
   });
