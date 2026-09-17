@@ -39,7 +39,7 @@ function InvitePage() {
     (lang === "ar" ? "جرب وقتي معايا! " : "Try Waqti with me! ") + link
   )}`;
   const credits = profile?.referral_credits_egp ?? 0;
-  const earned = count.paid * 10;
+  const earned = count.paid * 15;
   const needMore = Math.max(0, 3 - count.paid);
 
   return (
@@ -50,12 +50,12 @@ function InvitePage() {
       <div className="mt-6 grid gap-4 md:grid-cols-3">
         <RewardCard
           title={lang === "ar" ? "أنت بتاخد" : "You get"}
-          body={lang === "ar" ? "10 جنيه خصم على الشهر اللي بعده" : "10 EGP off your next month"}
+          body={lang === "ar" ? "15 جنيه خصم على الشهر اللي بعده" : "15 EGP off your next month"}
           accent="teal"
         />
         <RewardCard
           title={lang === "ar" ? "صاحبك بياخد" : "Your friend gets"}
-          body={lang === "ar" ? "أول شهر بـ 10 جنيه بدل 15" : "First month at 10 EGP instead of 15 EGP"}
+          body={lang === "ar" ? "أول شهر بـ 45 جنيه بدل 60" : "First month at 45 EGP instead of 60 EGP"}
           accent="gold"
         />
         <RewardCard
