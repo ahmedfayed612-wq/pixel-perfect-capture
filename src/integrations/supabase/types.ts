@@ -513,33 +513,6 @@ export type Database = {
         }
         Relationships: []
       }
-      admin_audit_log: {
-        Row: {
-          action: string
-          admin_session_id: string | null
-          created_at: string
-          details: Json | null
-          id: string
-          target_user_id: string | null
-        }
-        Insert: {
-          action: string
-          admin_session_id?: string | null
-          created_at?: string
-          details?: Json | null
-          id?: string
-          target_user_id?: string | null
-        }
-        Update: {
-          action?: string
-          admin_session_id?: string | null
-          created_at?: string
-          details?: Json | null
-          id?: string
-          target_user_id?: string | null
-        }
-        Relationships: []
-      }
       weekly_challenges: {
         Row: {
           completed: boolean
@@ -575,7 +548,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_grant_pro: { Args: { _admin_session_id?: string; _days: number; _reason: string; _user_id: string }; Returns: string }
       expire_all_pro_subscriptions: { Args: never; Returns: number }
       expire_pro_if_due: { Args: never; Returns: undefined }
       find_user_for_payment: {
@@ -583,10 +555,6 @@ export type Database = {
         Returns: string
       }
       generate_referral_code: { Args: { _name: string }; Returns: string }
-      get_dashboard_metrics: { Args: never; Returns: string }
-      get_referral_stats: { Args: never; Returns: string }
-      get_revenue_summary: { Args: { _days?: number }; Returns: string }
-      get_user_analytics: { Args: { _days?: number }; Returns: string }
       grant_pro: { Args: { _days: number; _user_id: string }; Returns: string }
       send_pro_expiry_reminders: { Args: never; Returns: undefined }
     }

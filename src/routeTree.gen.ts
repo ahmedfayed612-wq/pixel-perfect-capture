@@ -18,9 +18,16 @@ import { Route as PaymentCallbackRouteImport } from './routes/payment-callback'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as DashboardAdminRouteImport } from './routes/dashboard-admin'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardAdminIndexRouteImport } from './routes/dashboard-admin.index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as DashboardAdminUsersRouteImport } from './routes/dashboard-admin.users'
+import { Route as DashboardAdminReferralsRouteImport } from './routes/dashboard-admin.referrals'
+import { Route as DashboardAdminPaymentsRouteImport } from './routes/dashboard-admin.payments'
+import { Route as DashboardAdminLoginRouteImport } from './routes/dashboard-admin.login'
+import { Route as DashboardAdminAnalyticsRouteImport } from './routes/dashboard-admin.analytics'
 import { Route as AppUpgradeRouteImport } from './routes/app.upgrade'
 import { Route as AppTimerRouteImport } from './routes/app.timer'
 import { Route as AppSubjectsRouteImport } from './routes/app.subjects'
@@ -78,6 +85,11 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardAdminRoute = DashboardAdminRouteImport.update({
+  id: '/dashboard-admin',
+  path: '/dashboard-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
@@ -88,10 +100,40 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardAdminIndexRoute = DashboardAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardAdminRoute,
+} as any)
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const DashboardAdminUsersRoute = DashboardAdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => DashboardAdminRoute,
+} as any)
+const DashboardAdminReferralsRoute = DashboardAdminReferralsRouteImport.update({
+  id: '/referrals',
+  path: '/referrals',
+  getParentRoute: () => DashboardAdminRoute,
+} as any)
+const DashboardAdminPaymentsRoute = DashboardAdminPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => DashboardAdminRoute,
+} as any)
+const DashboardAdminLoginRoute = DashboardAdminLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => DashboardAdminRoute,
+} as any)
+const DashboardAdminAnalyticsRoute = DashboardAdminAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => DashboardAdminRoute,
 } as any)
 const AppUpgradeRoute = AppUpgradeRouteImport.update({
   id: '/upgrade',
@@ -152,6 +194,7 @@ const ApiPublicKashierWebhookRoute = ApiPublicKashierWebhookRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/dashboard-admin': typeof DashboardAdminRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
@@ -171,7 +214,13 @@ export interface FileRoutesByFullPath {
   '/app/subjects': typeof AppSubjectsRoute
   '/app/timer': typeof AppTimerRoute
   '/app/upgrade': typeof AppUpgradeRoute
+  '/dashboard-admin/analytics': typeof DashboardAdminAnalyticsRoute
+  '/dashboard-admin/login': typeof DashboardAdminLoginRoute
+  '/dashboard-admin/payments': typeof DashboardAdminPaymentsRoute
+  '/dashboard-admin/referrals': typeof DashboardAdminReferralsRoute
+  '/dashboard-admin/users': typeof DashboardAdminUsersRoute
   '/app/': typeof AppIndexRoute
+  '/dashboard-admin/': typeof DashboardAdminIndexRoute
   '/api/public/kashier-webhook': typeof ApiPublicKashierWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -195,13 +244,20 @@ export interface FileRoutesByTo {
   '/app/subjects': typeof AppSubjectsRoute
   '/app/timer': typeof AppTimerRoute
   '/app/upgrade': typeof AppUpgradeRoute
+  '/dashboard-admin/analytics': typeof DashboardAdminAnalyticsRoute
+  '/dashboard-admin/login': typeof DashboardAdminLoginRoute
+  '/dashboard-admin/payments': typeof DashboardAdminPaymentsRoute
+  '/dashboard-admin/referrals': typeof DashboardAdminReferralsRoute
+  '/dashboard-admin/users': typeof DashboardAdminUsersRoute
   '/app': typeof AppIndexRoute
+  '/dashboard-admin': typeof DashboardAdminIndexRoute
   '/api/public/kashier-webhook': typeof ApiPublicKashierWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/dashboard-admin': typeof DashboardAdminRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
@@ -221,7 +277,13 @@ export interface FileRoutesById {
   '/app/subjects': typeof AppSubjectsRoute
   '/app/timer': typeof AppTimerRoute
   '/app/upgrade': typeof AppUpgradeRoute
+  '/dashboard-admin/analytics': typeof DashboardAdminAnalyticsRoute
+  '/dashboard-admin/login': typeof DashboardAdminLoginRoute
+  '/dashboard-admin/payments': typeof DashboardAdminPaymentsRoute
+  '/dashboard-admin/referrals': typeof DashboardAdminReferralsRoute
+  '/dashboard-admin/users': typeof DashboardAdminUsersRoute
   '/app/': typeof AppIndexRoute
+  '/dashboard-admin/': typeof DashboardAdminIndexRoute
   '/api/public/kashier-webhook': typeof ApiPublicKashierWebhookRoute
 }
 export interface FileRouteTypes {
@@ -229,6 +291,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/app'
+    | '/dashboard-admin'
     | '/forgot-password'
     | '/login'
     | '/onboarding'
@@ -248,7 +311,13 @@ export interface FileRouteTypes {
     | '/app/subjects'
     | '/app/timer'
     | '/app/upgrade'
+    | '/dashboard-admin/analytics'
+    | '/dashboard-admin/login'
+    | '/dashboard-admin/payments'
+    | '/dashboard-admin/referrals'
+    | '/dashboard-admin/users'
     | '/app/'
+    | '/dashboard-admin/'
     | '/api/public/kashier-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -272,12 +341,19 @@ export interface FileRouteTypes {
     | '/app/subjects'
     | '/app/timer'
     | '/app/upgrade'
+    | '/dashboard-admin/analytics'
+    | '/dashboard-admin/login'
+    | '/dashboard-admin/payments'
+    | '/dashboard-admin/referrals'
+    | '/dashboard-admin/users'
     | '/app'
+    | '/dashboard-admin'
     | '/api/public/kashier-webhook'
   id:
     | '__root__'
     | '/'
     | '/app'
+    | '/dashboard-admin'
     | '/forgot-password'
     | '/login'
     | '/onboarding'
@@ -297,13 +373,20 @@ export interface FileRouteTypes {
     | '/app/subjects'
     | '/app/timer'
     | '/app/upgrade'
+    | '/dashboard-admin/analytics'
+    | '/dashboard-admin/login'
+    | '/dashboard-admin/payments'
+    | '/dashboard-admin/referrals'
+    | '/dashboard-admin/users'
     | '/app/'
+    | '/dashboard-admin/'
     | '/api/public/kashier-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  DashboardAdminRoute: typeof DashboardAdminRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -381,6 +464,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard-admin': {
+      id: '/dashboard-admin'
+      path: '/dashboard-admin'
+      fullPath: '/dashboard-admin'
+      preLoaderRoute: typeof DashboardAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app': {
       id: '/app'
       path: '/app'
@@ -395,12 +485,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard-admin/': {
+      id: '/dashboard-admin/'
+      path: '/'
+      fullPath: '/dashboard-admin/'
+      preLoaderRoute: typeof DashboardAdminIndexRouteImport
+      parentRoute: typeof DashboardAdminRoute
+    }
     '/app/': {
       id: '/app/'
       path: '/'
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/dashboard-admin/users': {
+      id: '/dashboard-admin/users'
+      path: '/users'
+      fullPath: '/dashboard-admin/users'
+      preLoaderRoute: typeof DashboardAdminUsersRouteImport
+      parentRoute: typeof DashboardAdminRoute
+    }
+    '/dashboard-admin/referrals': {
+      id: '/dashboard-admin/referrals'
+      path: '/referrals'
+      fullPath: '/dashboard-admin/referrals'
+      preLoaderRoute: typeof DashboardAdminReferralsRouteImport
+      parentRoute: typeof DashboardAdminRoute
+    }
+    '/dashboard-admin/payments': {
+      id: '/dashboard-admin/payments'
+      path: '/payments'
+      fullPath: '/dashboard-admin/payments'
+      preLoaderRoute: typeof DashboardAdminPaymentsRouteImport
+      parentRoute: typeof DashboardAdminRoute
+    }
+    '/dashboard-admin/login': {
+      id: '/dashboard-admin/login'
+      path: '/login'
+      fullPath: '/dashboard-admin/login'
+      preLoaderRoute: typeof DashboardAdminLoginRouteImport
+      parentRoute: typeof DashboardAdminRoute
+    }
+    '/dashboard-admin/analytics': {
+      id: '/dashboard-admin/analytics'
+      path: '/analytics'
+      fullPath: '/dashboard-admin/analytics'
+      preLoaderRoute: typeof DashboardAdminAnalyticsRouteImport
+      parentRoute: typeof DashboardAdminRoute
     }
     '/app/upgrade': {
       id: '/app/upgrade'
@@ -512,9 +644,32 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface DashboardAdminRouteChildren {
+  DashboardAdminAnalyticsRoute: typeof DashboardAdminAnalyticsRoute
+  DashboardAdminLoginRoute: typeof DashboardAdminLoginRoute
+  DashboardAdminPaymentsRoute: typeof DashboardAdminPaymentsRoute
+  DashboardAdminReferralsRoute: typeof DashboardAdminReferralsRoute
+  DashboardAdminUsersRoute: typeof DashboardAdminUsersRoute
+  DashboardAdminIndexRoute: typeof DashboardAdminIndexRoute
+}
+
+const DashboardAdminRouteChildren: DashboardAdminRouteChildren = {
+  DashboardAdminAnalyticsRoute: DashboardAdminAnalyticsRoute,
+  DashboardAdminLoginRoute: DashboardAdminLoginRoute,
+  DashboardAdminPaymentsRoute: DashboardAdminPaymentsRoute,
+  DashboardAdminReferralsRoute: DashboardAdminReferralsRoute,
+  DashboardAdminUsersRoute: DashboardAdminUsersRoute,
+  DashboardAdminIndexRoute: DashboardAdminIndexRoute,
+}
+
+const DashboardAdminRouteWithChildren = DashboardAdminRoute._addFileChildren(
+  DashboardAdminRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  DashboardAdminRoute: DashboardAdminRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
