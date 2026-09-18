@@ -17,7 +17,7 @@ function AnalyticsPage() {
   const loadAnalytics = async () => {
     setLoading(true);
     try {
-      const data = await getUserAnalytics({ days: daysFilter });
+      const data = await getUserAnalytics(daysFilter);
       setAnalytics(data);
     } catch (error) {
       console.error("Failed to load analytics:", error);

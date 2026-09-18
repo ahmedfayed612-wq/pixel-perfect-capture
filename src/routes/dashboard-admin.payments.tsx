@@ -17,7 +17,7 @@ function PaymentsPage() {
   const loadRevenue = async () => {
     setLoading(true);
     try {
-      const data = await getRevenueSummary({ days: daysFilter });
+      const data = await getRevenueSummary(daysFilter);
       setRevenue(data);
     } catch (error) {
       console.error("Failed to load revenue data:", error);

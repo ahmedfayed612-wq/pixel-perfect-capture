@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { LayoutDashboard, Users, DollarSign, Gift, BarChart3, LogOut, Shield } from "lucide-react";
-import { isAdminAuthenticated, clearAdminSession } from "@/lib/admin-auth";
+import { useAuth } from "@/auth/AuthProvider";
 
 export const Route = createFileRoute("/dashboard-admin")({ component: AdminLayout });
 
@@ -15,15 +15,33 @@ const navItems = [
 
 function AdminLayout() {
   const navigate = useNavigate();
-  const isAuthenticated = isAdminAuthenticated();
+  const { user, profile, loading, signOut } = useAuth();
+  const loc = useLocation();
+
+  // Founder email check
+  const isFounder = profile?.email === "ahmedfayed612@gmail.com" || profile?.is_founder;
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate({ to: "/dashboard-admin/login" });
+    if (!loading && !user) {
+      navigate({ to: "/login", search: { redirect: loc.pathname } });
     }
-  }, [isAuthenticated, navigate]);
+  }, [loading, user, navigate, loc.pathname]);
 
-  if (!isAuthenticated) {
+  useEffect(() => {
+    if (!loading && user && !isFounder) {
+      navigate({ to: "/app" });
+    }
+  }, [loading, user, isFounder, navigate]);
+
+  if (loading || !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-off-white">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal/30 border-t-teal" />
+      </div>
+    );
+  }
+
+  if (!isFounder) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-off-white">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal/30 border-t-teal" />
@@ -32,8 +50,8 @@ function AdminLayout() {
   }
 
   const handleLogout = () => {
-    clearAdminSession();
-    navigate({ to: "/dashboard-admin/login" });
+    signOut();
+    navigate({ to: "/login" });
   };
 
   return (

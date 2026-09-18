@@ -1,6 +1,6 @@
 import { Link, Outlet, createFileRoute, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { Home, Timer, BookOpen, Calendar, BarChart3, Flame, Gift, Settings, LogOut, Lock, Target, ListChecks } from "lucide-react";
+import { Home, Timer, BookOpen, Calendar, BarChart3, Flame, Gift, Settings, LogOut, Lock, Target, ListChecks, Shield } from "lucide-react";
 import { useAuth } from "@/auth/AuthProvider";
 import { useLang } from "@/i18n/LangProvider";
 import { tr, t } from "@/i18n/strings";
@@ -26,6 +26,9 @@ function AppLayout() {
   const navigate = useNavigate();
   const loc = useLocation();
   const { lang } = useLang();
+  
+  // Founder email check
+  const isFounder = profile?.email === "ahmedfayed612@gmail.com" || profile?.is_founder;
 
   useEffect(() => {
     if (!loading && !user) {
@@ -84,6 +87,15 @@ function AppLayout() {
               {isPro ? "PRO" : "FREE"}
             </span>
           </div>
+          {isFounder && (
+            <Link
+              to="/dashboard-admin"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gold hover:bg-white/10"
+            >
+              <Shield className="h-4 w-4" />
+              <span>Founder Dashboard</span>
+            </Link>
+          )}
           <Link
             to="/app/settings"
             className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10"

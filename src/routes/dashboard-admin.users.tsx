@@ -45,7 +45,7 @@ function UserManagement() {
       await adminGrantPro({
         userId,
         days,
-        reason: "Admin manual grant",
+        reason: "Admin manual grant via dashboard",
       });
       toast.success(`Pro access granted for ${days} days`);
       loadUsers();

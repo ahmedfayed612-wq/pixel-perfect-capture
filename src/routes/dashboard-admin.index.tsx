@@ -1,24 +1,79 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Users, DollarSign, TrendingUp, Clock, Gift, BarChart3, Shield } from "lucide-react";
-import { getDashboardMetrics } from "@/lib/admin.server";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/dashboard-admin/")({ component: AdminOverview });
 
 function AdminOverview() {
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadMetrics();
   }, []);
 
   const loadMetrics = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const data = await getDashboardMetrics();
-      setMetrics(data);
+      // Try direct Supabase calls instead of server functions
+      const [
+        { count: totalUsers },
+        { count: proUsers },
+        paymentsData,
+        todaySignups,
+        todayActive,
+        referralsData,
+      ] = await Promise.all([
+        supabase.from("profiles").select("*", { count: "exact", head: true }),
+        supabase.from("profiles").select("*", { count: "exact", head: true }).eq("plan", "pro"),
+        supabase.from("payments").select("amount"),
+        supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", new Date().toISOString().split('T')[0]),
+        supabase.from("sessions").select("user_id", { count: "exact", head: true }).eq("date", new Date().toISOString().split('T')[0]),
+        supabase.from("referrals").select("*", { count: "exact", head: true }),
+      ]);
+
+      const totalRevenue = (paymentsData.data || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+      
+      // Calculate monthly revenue (last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const { data: recentPayments } = await supabase
+        .from("payments")
+        .select("amount")
+        .gte("created_at", thirtyDaysAgo.toISOString());
+      
+      const monthlyRevenue = (recentPayments || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+
+      const totalReferrals = referralsData || 0;
+      const convertedReferrals = (referralsData.data || []).filter((r: any) => r.status === "converted").length;
+
+      setMetrics({
+        total_users: totalUsers || 0,
+        pro_users: proUsers || 0,
+        total_revenue: totalRevenue,
+        monthly_revenue: monthlyRevenue,
+        signups_today: todaySignups || 0,
+        active_users_today: todayActive || 0,
+        referrals_total: totalReferrals,
+        referrals_converted: convertedReferrals,
+      });
     } catch (error) {
       console.error("Failed to load metrics:", error);
+      setError("Failed to load dashboard metrics");
+      // Set some default metrics for display
+      setMetrics({
+        total_users: 0,
+        pro_users: 0,
+        total_revenue: 0,
+        monthly_revenue: 0,
+        signups_today: 0,
+        active_users_today: 0,
+        referrals_total: 0,
+        referrals_converted: 0,
+      });
     } finally {
       setLoading(false);
     }

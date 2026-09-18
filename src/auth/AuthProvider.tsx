@@ -28,6 +28,7 @@ type Profile = {
   notify_block_reminder: boolean;
   plan: string;
   onboarding_complete: boolean;
+  is_founder: boolean;
 };
 
 type Ctx = {
