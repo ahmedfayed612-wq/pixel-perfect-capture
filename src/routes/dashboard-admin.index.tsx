@@ -18,45 +18,83 @@ function AdminOverview() {
     setLoading(true);
     setError(null);
     try {
-      // Try direct Supabase calls instead of server functions
-      const [
-        { count: totalUsers },
-        { count: proUsers },
-        paymentsData,
-        todaySignups,
-        todayActive,
-        referralsData,
-      ] = await Promise.all([
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
-        supabase.from("profiles").select("*", { count: "exact", head: true }).eq("plan", "pro"),
-        supabase.from("payments").select("amount"),
-        supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", new Date().toISOString().split('T')[0]),
-        supabase.from("sessions").select("user_id", { count: "exact", head: true }).eq("date", new Date().toISOString().split('T')[0]),
-        supabase.from("referrals").select("*", { count: "exact", head: true }),
-      ]);
+      // Get basic metrics one by one to handle errors gracefully
+      let totalUsers = 0;
+      let proUsers = 0;
+      let totalRevenue = 0;
+      let monthlyRevenue = 0;
+      let signupsToday = 0;
+      let activeToday = 0;
+      let totalReferrals = 0;
+      let convertedReferrals = 0;
 
-      const totalRevenue = (paymentsData.data || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
-      
-      // Calculate monthly revenue (last 30 days)
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const { data: recentPayments } = await supabase
-        .from("payments")
-        .select("amount")
-        .gte("created_at", thirtyDaysAgo.toISOString());
-      
-      const monthlyRevenue = (recentPayments || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+      try {
+        const { count } = await supabase.from("profiles").select("*", { count: "exact", head: true });
+        totalUsers = count || 0;
+      } catch (e) {
+        console.error("Error getting total users:", e);
+      }
 
-      const totalReferrals = referralsData || 0;
-      const convertedReferrals = (referralsData.data || []).filter((r: any) => r.status === "converted").length;
+      try {
+        const { count } = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("plan", "pro");
+        proUsers = count || 0;
+      } catch (e) {
+        console.error("Error getting pro users:", e);
+      }
+
+      try {
+        const { data } = await supabase.from("payments").select("amount");
+        totalRevenue = (data || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+      } catch (e) {
+        console.error("Error getting payments:", e);
+      }
+
+      try {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const { data } = await supabase.from("payments").select("amount").gte("created_at", thirtyDaysAgo.toISOString());
+        monthlyRevenue = (data || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+      } catch (e) {
+        console.error("Error getting monthly revenue:", e);
+      }
+
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const { count } = await supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", today);
+        signupsToday = count || 0;
+      } catch (e) {
+        console.error("Error getting today signups:", e);
+      }
+
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const { count } = await supabase.from("sessions").select("user_id", { count: "exact", head: true }).eq("date", today);
+        activeToday = count || 0;
+      } catch (e) {
+        console.error("Error getting today active:", e);
+      }
+
+      try {
+        const { count } = await supabase.from("referrals").select("*", { count: "exact", head: true });
+        totalReferrals = count || 0;
+      } catch (e) {
+        console.error("Error getting referrals:", e);
+      }
+
+      try {
+        const { data } = await supabase.from("referrals").select("*");
+        convertedReferrals = (data || []).filter((r: any) => r.status === "converted").length;
+      } catch (e) {
+        console.error("Error getting converted referrals:", e);
+      }
 
       setMetrics({
-        total_users: totalUsers || 0,
-        pro_users: proUsers || 0,
+        total_users: totalUsers,
+        pro_users: proUsers,
         total_revenue: totalRevenue,
         monthly_revenue: monthlyRevenue,
-        signups_today: todaySignups || 0,
-        active_users_today: todayActive || 0,
+        signups_today: signupsToday,
+        active_users_today: activeToday,
         referrals_total: totalReferrals,
         referrals_converted: convertedReferrals,
       });

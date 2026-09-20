@@ -5,11 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 export const getDashboardMetrics = async () => {
   try {
     const [
-      { count: totalUsers },
-      { count: proUsers },
+      totalUsersResult,
+      proUsersResult,
       paymentsData,
-      todaySignups,
-      todayActive,
+      todaySignupsResult,
+      todayActiveResult,
       referralsData,
     ] = await Promise.all([
       supabase.from("profiles").select("*", { count: "exact", head: true }),
@@ -20,6 +20,8 @@ export const getDashboardMetrics = async () => {
       supabase.from("referrals").select("*", { count: "exact", head: true }),
     ]);
 
+    const totalUsers = totalUsersResult.count || 0;
+    const proUsers = proUsersResult.count || 0;
     const totalRevenue = (paymentsData.data || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
     
     // Calculate monthly revenue (last 30 days)
@@ -32,16 +34,16 @@ export const getDashboardMetrics = async () => {
     
     const monthlyRevenue = (recentPayments || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
 
-    const totalReferrals = referralsData || 0;
+    const totalReferrals = referralsData.count || 0;
     const convertedReferrals = (referralsData.data || []).filter((r: any) => r.status === "converted").length;
 
     return {
-      total_users: totalUsers || 0,
-      pro_users: proUsers || 0,
+      total_users: totalUsers,
+      pro_users: proUsers,
       total_revenue: totalRevenue,
       monthly_revenue: monthlyRevenue,
-      signups_today: todaySignups || 0,
-      active_users_today: todayActive || 0,
+      signups_today: todaySignupsResult.count || 0,
+      active_users_today: todayActiveResult.count || 0,
       referrals_total: totalReferrals,
       referrals_converted: convertedReferrals,
     };
@@ -58,10 +60,10 @@ export const getUserAnalytics = async (days: number = 30) => {
     startDate.setDate(startDate.getDate() - days);
 
     const [
-      { count: totalUsers },
-      { count: newUsers },
-      { count: proUsers },
-      { count: activeUsers },
+      totalUsersResult,
+      newUsersResult,
+      proUsersResult,
+      activeUsersResult,
       profilesData,
       sessionsData,
     ] = await Promise.all([
@@ -73,6 +75,10 @@ export const getUserAnalytics = async (days: number = 30) => {
       supabase.from("sessions").select("hours").gte("date", startDate.toISOString()),
     ]);
 
+    const totalUsers = totalUsersResult.count || 0;
+    const newUsers = newUsersResult.count || 0;
+    const proUsers = proUsersResult.count || 0;
+    const activeUsers = activeUsersResult.count || 0;
     const profiles = profilesData.data || [];
     const sessions = sessionsData.data || [];
     
@@ -85,10 +91,10 @@ export const getUserAnalytics = async (days: number = 30) => {
     const avgHours = totalUsers ? totalHours / totalUsers : 0;
 
     return {
-      total_users: totalUsers || 0,
-      new_users: newUsers || 0,
-      pro_users: proUsers || 0,
-      active_users: activeUsers || 0,
+      total_users: totalUsers,
+      new_users: newUsers,
+      pro_users: proUsers,
+      active_users: activeUsers,
       highschool_count: highschoolCount,
       university_count: universityCount,
       arabic_count: arabicCount,
@@ -111,7 +117,7 @@ export const getRevenueSummary = async (days: number = 30) => {
     const [
       allPayments,
       recentPayments,
-      { count: totalTransactions },
+      totalTransactionsResult,
     ] = await Promise.all([
       supabase.from("payments").select("amount, plan"),
       supabase.from("payments").select("amount, plan").gte("created_at", startDate.toISOString()),
@@ -128,12 +134,13 @@ export const getRevenueSummary = async (days: number = 30) => {
       .filter((p: any) => p.plan === "nine_month")
       .reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
 
+    const totalTransactions = totalTransactionsResult.count || 0;
     const avgTransaction = totalTransactions ? periodRevenue / totalTransactions : 0;
 
     return {
       total_revenue: totalRevenue,
       period_revenue: periodRevenue,
-      total_transactions: totalTransactions || 0,
+      total_transactions: totalTransactions,
       monthly_revenue: monthlyRevenue,
       nine_month_revenue: nineMonthRevenue,
       avg_transaction: avgTransaction,
@@ -148,17 +155,18 @@ export const getRevenueSummary = async (days: number = 30) => {
 export const getReferralStats = async () => {
   try {
     const [
-      { count: totalReferrals },
-      { data: referralsData },
-      { data: referrersData },
+      totalReferralsResult,
+      referralsData,
+      referrersData,
     ] = await Promise.all([
       supabase.from("referrals").select("*", { count: "exact", head: true }),
       supabase.from("referrals").select("*"),
       supabase.from("profiles").select("id, name, email"),
     ]);
 
-    const referrals = referralsData || [];
-    const referrers = referrersData || [];
+    const totalReferrals = totalReferralsResult.count || 0;
+    const referrals = referralsData.data || [];
+    const referrers = referrersData.data || [];
     
     const convertedReferrals = referrals.filter((r: any) => r.status === "converted").length;
     const pendingReferrals = referrals.filter((r: any) => r.status === "pending").length;
@@ -193,7 +201,7 @@ export const getReferralStats = async () => {
       .slice(0, 10);
 
     return {
-      total_referrals: totalReferrals || 0,
+      total_referrals: totalReferrals,
       converted_referrals: convertedReferrals,
       pending_referrals: pendingReferrals,
       conversion_rate: totalReferrals ? (convertedReferrals / totalReferrals) * 100 : 0,
@@ -235,12 +243,14 @@ export const getUserList = async (params: {
     
     if (error) throw new Error(`Failed to get user list: ${error.message}`);
     
+    const total = count || 0;
+    
     return {
       users: users || [],
-      total: count || 0,
+      total,
       page,
       limit,
-      totalPages: Math.ceil((count || 0) / limit),
+      totalPages: Math.ceil(total / limit),
     };
   } catch (error) {
     console.error("Failed to get user list:", error);
